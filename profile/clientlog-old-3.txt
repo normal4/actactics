@@ -1,0 +1,74 @@
+######## start logging: 20200526_09.57.33
+parsing commandline argument 1: "--home=profile"
+Using home directory: profile\
+parsing commandline argument 2: "--init"
+config\entropy.dat not found.
+writing to file: profile\clientlog.txt
+init: sdl (1.2.15)
+init: net (1.3.6)
+init: world (1202)
+init: video: sdl
+init: video: mode
+init: video: misc
+init: gl
+Renderer: GeForce GTX 1060 6GB/PCIe/SSE2 (NVIDIA Corporation)
+Driver: 4.6.0 NVIDIA 417.71
+init: console
+init: sound
+Audio devices: Generic Software
+Sound: Generic Software / Software (Creative Labs Inc.)
+Driver: 1.1
+init: cfg
+init: models
+writing to file: profile\packages\models\playermodels\shadows.dat
+writing to file: profile\packages\models\weapons\knife\world\shadows.dat
+writing to file: profile\packages\models\weapons\pistol\world\shadows.dat
+writing to file: profile\packages\models\weapons\carbine\world\shadows.dat
+writing to file: profile\packages\models\weapons\shotgun\world\shadows.dat
+writing to file: profile\packages\models\weapons\subgun\world\shadows.dat
+writing to file: profile\packages\models\weapons\sniper\world\shadows.dat
+writing to file: profile\packages\models\weapons\assault\world\shadows.dat
+writing to file: profile\packages\models\weapons\grenade\world\shadows.dat
+writing to file: profile\packages\models\pickups\nades\shadows.dat
+writing to file: profile\packages\models\pickups\pistolclips\shadows.dat
+writing to file: profile\packages\models\pickups\ammobox\shadows.dat
+writing to file: profile\packages\models\pickups\nade\shadows.dat
+writing to file: profile\packages\models\pickups\health\shadows.dat
+writing to file: profile\packages\models\pickups\helmet\shadows.dat
+writing to file: profile\packages\models\pickups\kevlar\shadows.dat
+writing to file: profile\packages\models\pickups\akimbo\shadows.dat
+writing to file: profile\packages\models\misc\gib01\shadows.dat
+writing to file: profile\packages\models\misc\gib02\shadows.dat
+writing to file: profile\packages\models\misc\gib03\shadows.dat
+writing to file: profile\packages\models\weapons\grenade\static\shadows.dat
+init: docs
+docargument: double token actor in reference onFlag
+docargument: double token actor in reference onFlag
+docargument: double token actor in reference onFlag
+docargument: double token target in reference onFlag
+docargument: double token gun in reference onFlag
+docargument: double token gib in reference onFlag
+init: localconnect
+read map packages\maps\official\ac_urban.cgz rev 3 (5 milliseconds)
+Urban district - By Archangel and RandumKiwi
+loaded textures (183 milliseconds)
+loaded mapmodels (222 milliseconds)
+loaded mapsounds (222 milliseconds)
+game mode is "TDM"
+init: mainloop
+could not read "config/authprivate.cfg"
+resolving hostname packages.cubers.net succeeded (167.114.34.178)
+http head packages.cubers.net:80/updates.txt response time: 761, status: 404, contentlength: 0
+successfully pinged 1 media server, 0 failures, 0 disabled
+Welcome to AssaultCube
+
+Use the below menu to change some necessary settings...
+
+Further help & information can be found in your README which is inside your AssaultCube directory.
+writing to file: profile\config\init.cfg
+writing to file: profile\config\servers.cfg
+writing to file: profile\config\pcksources.cfg
+writing to file: profile\config\saved.cfg
+writing to file: profile\config\history
+writing to file: profile\config\mapmodelattributes.cfg
+writing to file: profile\config\entropy.dat
