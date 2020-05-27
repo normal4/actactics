@@ -8,6 +8,7 @@ VARP(networkdebug, 0, 0, 1);
 
 extern bool watchingdemo;
 extern string clientpassword;
+extern int clientpaused = 0;
 
 void *downloaddemomenu = NULL;
 static vector<mline> demo_mlines;
@@ -1415,8 +1416,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                 }
                 player1->clientnum = getint(p);
                 break;
+
+                
             }
 
+            case SV_PAUSE:
+            {
+                clientpaused = getint(p);
+                break;
+            }
             default:
                 neterr("type");
                 return;

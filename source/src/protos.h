@@ -543,7 +543,7 @@ extern int sessionid;
 extern int gametimecurrent;
 extern int gametimemaximum;
 extern int lastgametimeupdate;
-struct serverstate { int autoteam; int mastermode; int matchteamsize; int locked; void reset() { autoteam = mastermode = matchteamsize = locked = 0; } };
+struct serverstate { int autoteam; int mastermode; int matchteamsize; int locked; int curtime; void reset() { autoteam = mastermode = matchteamsize = locked = curtime = 0; } };
 extern struct serverstate servstate;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap(bool mrproper = true);

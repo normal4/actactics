@@ -3,7 +3,7 @@
 enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
 int roleconf(int key)
-{ // current defaults: "fkbMASRCDEPTWl"
+{ // current defaults: "fkbMASRCDEPTWlJ"
     if(strchr(scl.voteperm, tolower(key))) return CR_DEFAULT;
     if(strchr(scl.voteperm, toupper(key))) return CR_ADMIN;
     return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
@@ -339,12 +339,55 @@ struct lockaction : serveraction
         role = roleconf('L');
         if (lock == 0)
         {
-            formatstring(desc)("unlock server");
+            formatstring(desc)("unlock the server");
         }
         else if (lock == 1)
         {
-            formatstring(desc)("lock server");
+            formatstring(desc)("lock the server");
         }
     }
     
 };
+
+struct pauseaction : serveraction
+{
+    int ispaused; 
+    void perform() 
+    {
+        if (ispaused == 1)
+        {
+            sendf(-1, 1, "ri2", SV_PAUSE, 1);
+            servercurtime(ispaused);
+        }
+        if (ispaused == 0)
+        {
+            sendf(-1, 1, "ri2", SV_PAUSE, 0);
+            servercurtime(ispaused);
+        }
+    }
+    bool isvalid() { return ispaused >= 0 && ispaused <= 1 && mastermode == MM_MATCH; }
+    pauseaction (int ispaused) : ispaused(ispaused)
+    {
+        role = roleconf('J');
+        if (ispaused == 0)
+        {
+            formatstring(desc)("unpause the server");
+        }
+        else if (ispaused == 1)
+        {
+            formatstring(desc)("pause the server");
+        }
+    }
+};
+
+/*
+struct compaction : serveraction
+{
+    void perform () { }
+    bool isvalid() { return compmode >= 0 && compmode <= 1; }
+    compaction ()
+    {
+
+    }
+};
+*/

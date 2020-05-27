@@ -41,6 +41,7 @@ vector<ban> bans;
 vector<demofile> demofiles;
 
 int locked = 0;
+int serverpaused = 0;
 int mastermode = MM_PUBLIC;
 static bool autoteam = true;
 int matchteamsize = 0;
@@ -166,6 +167,10 @@ void lockserver(int newlock)
     locked = newlock; 
 }
 
+void servercurtime(int newpause)
+{
+    serverpaused = newpause; 
+}
 
 void cleanworldstate(ENetPacket *packet)
 {
@@ -3659,7 +3664,10 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_LOCK:
                         vi->action = new lockaction(vi->num1 = getint(p));
                         break;
-                        
+                    case SA_PAUSE:
+                        vi->action = new pauseaction(vi->num1 = getint(p));
+                        break;
+                     
                 }
                 vi->owner = sender;
                 vi->callmillis = servmillis;
@@ -3820,8 +3828,9 @@ void sendworldstate()
 {
     static enet_uint32 lastsend = 0;
     if(clients.empty()) return;
-    enet_uint32 curtime = enet_time_get()-lastsend;
-    if(curtime<40) return;
+    enet_uint32 curtime;
+    curtime = enet_time_get() - lastsend; 
+    if (curtime < 40) return;
     bool flush = buildworldstate();
     lastsend += curtime - (curtime%40);
     if(flush) enet_host_flush(serverhost);
@@ -3966,10 +3975,13 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     int nextmillis = isdedicated ? (int)enet_time_get() : lastmillis;
 #endif
     int diff = nextmillis - servmillis;
-    gamemillis += diff;
-    servmillis = nextmillis;
-    servertime = ((diff + 3 * servertime)>>2);
-    if (servertime > 40) serverlagged = servmillis;
+    if (serverpaused == 0)
+    {
+        gamemillis += diff;
+        servmillis = nextmillis;
+        servertime = ((diff + 3 * servertime) >> 2);
+        if (servertime > 40) serverlagged = servmillis;
+    }
 
 #ifndef STANDALONE
     if(m_demo)

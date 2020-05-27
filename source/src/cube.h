@@ -55,6 +55,7 @@ extern hashtable<char *, enet_uint32> mapinfo;
 extern int hwtexsize, hwmaxaniso;
 extern int maploaded, msctrl;
 extern float waterlevel;
+extern int clientpaused;
 
 #define AC_VERSION 1202
 #define AC_MASTER_URI "ms.cubers.net"
