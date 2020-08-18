@@ -474,7 +474,7 @@ void checkfrag(client *target, client *actor, int gun, bool gib)
             else addpt(actor, BONUSPT);
 
             if (gib && gun != GUN_GRENADE) {
-                if ( gun == GUN_SNIPER ) {
+                if ( gun == GUN_SNIPER || GUN_ASSAULT || GUN_PISTOL || GUN_SUBGUN || GUN_SHOTGUN || GUN_CARBINE) {
                     addpt(actor, HEADSHOTPT);
                     actor->md.nhs++;
                 }

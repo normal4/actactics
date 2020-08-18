@@ -999,7 +999,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     if(gib)
     {
-        if(pl!=act && gun == GUN_SNIPER) audiomgr.playsound(S_HEADSHOT, SP_LOW);
+        if(pl!=act && gun == GUN_SNIPER || GUN_ASSAULT || GUN_PISTOL || GUN_SUBGUN || GUN_SHOTGUN || GUN_CARBINE) audiomgr.playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
 

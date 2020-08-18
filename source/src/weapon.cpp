@@ -309,10 +309,10 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
         }
     }
     float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
-    vec bottom(d->o), top(sinf(y)*c, -cosf(y)*c, sinf(p))/*, mid(top)*/;
+    vec bottom(d->o), top(sinf(y) * c, -cosf(y) * c, sinf(p)), mid(top);
     bottom.z -= d->eyeheight;
     float h = d->eyeheight /*+ d->aboveeye*/; // this mod makes the shots pass over the shoulders
-//     mid.mul(h*0.5).add(bottom);            // this mod divides the hitbox in 2
+    mid.mul(h*0.5).add(bottom);            // this mod divides the hitbox in 2
     top.mul(h).add(bottom);
     if( intersectcylinder(from, to, bottom, top, d->radius, dist) ) // FIXME if using 2 hitboxes
     {
@@ -838,13 +838,20 @@ void raydamage(vec &from, vec &to, playerent *d)
         }
         if(hitscount) shorten(from, to, hitdistsquared);
     }
+    
+
     else if((o = intersectclosest(from, to, d, distsquared, hitzone)))
     {
         bool gib = false;
         switch(d->weaponsel->type)
         {
             case GUN_KNIFE: gib = true; break;
-            case GUN_SNIPER: if(d==player1 && hitzone==2) { dam *= 3; gib = true; }; break;
+            case GUN_SNIPER: if(d==player1 && hitzone==HIT_HEAD) { dam *= 3; gib = true; }; break;
+            case GUN_ASSAULT: if (d==player1 && hitzone==HIT_HEAD) { dam *= 6; gib = true; }; break;
+            case GUN_SUBGUN: if (d==player1 && hitzone==HIT_HEAD) { dam *= 4; gib = true; }; break;
+            case GUN_SHOTGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2; gib = true; }; break;
+            case GUN_CARBINE: if (d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = true; }; break;
+            case GUN_PISTOL: if (d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = true; }; break;
             default: break;
         }
         bool info = gib;
@@ -1472,7 +1479,10 @@ bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this
 
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-int subgun::dynspread() { return shots > 2 ? 70 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); } // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
+int subgun::dynspread() { 
+    //return shots > 3 ? 70 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); 
+    return shots > 3 ? 75 : 1;
+} // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
 
 
 // sniperrifle
@@ -1550,7 +1560,10 @@ bool carbine::selectable() { return weapon::selectable() && !m_noprimary && this
 
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
-int assaultrifle::dynspread() { return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); }
+int assaultrifle::dynspread() { 
+    //return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); 
+    return shots > 3 ? 55 : 1;
+    }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
