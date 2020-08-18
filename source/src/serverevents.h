@@ -91,11 +91,42 @@ void processevent(client *c, shotevent &e)
                 {
                     damage = rays*guns[e.gun].damage;
                     gib = e.gun == GUN_KNIFE;
-                    if((e.gun == GUN_SNIPER || GUN_ASSAULT || GUN_PISTOL || GUN_SUBGUN || GUN_SHOTGUN || GUN_CARBINE) && h.info != 0)
+                    if((e.gun == GUN_SNIPER ) && h.info != 0)
                     {
                         gib = true;
                         damage *= 3;
                     }
+
+
+                    if ((e.gun == GUN_ASSAULT) && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 6;
+                    }
+
+                    if ((e.gun == GUN_PISTOL) && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 3;
+                    }
+                    if ((e.gun == GUN_SUBGUN) && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 4;
+                    }
+
+                    if ((e.gun == GUN_SHOTGUN) && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 2;
+                    }
+
+                    if ((e.gun == GUN_CARBINE) && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 3;
+                    }
+
                 }
                 totalrays += rays;
 
