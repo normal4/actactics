@@ -68,7 +68,8 @@ void processevent(client *c, shotevent &e)
                 client *target = clients[h.target];
                 if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
-                int rays = 1, damage = 0;
+                int rays = 1;
+                float damage = 0;
                 bool gib = false;
                 if(e.gun == GUN_SHOTGUN)
                 {
@@ -101,24 +102,31 @@ void processevent(client *c, shotevent &e)
                     if ((e.gun == GUN_ASSAULT) && h.info != 0)
                     {
                         gib = true;
-                        damage *= 6;
+                        damage *= 2.18;
                     }
 
                     if ((e.gun == GUN_PISTOL) && h.info != 0)
                     {
                         gib = true;
-                        damage *= 3;
+                        damage *= 2.5;
                     }
+
+                    if ((e.gun == GUN_AKIMBO) && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 1.5;
+                    }
+
                     if ((e.gun == GUN_SUBGUN) && h.info != 0)
                     {
                         gib = true;
-                        damage *= 4;
+                        damage *= 2.15;
                     }
 
                     if ((e.gun == GUN_SHOTGUN) && h.info != 0)
                     {
                         gib = true;
-                        damage *= 2;
+                        damage *= 1.5;
                     }
 
                     if ((e.gun == GUN_CARBINE) && h.info != 0)

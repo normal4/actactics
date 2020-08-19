@@ -934,7 +934,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, int gun, bool gib, bo
     // I suppose someone wanted to play the hitsound for player1 or spectated player (lucas:2011may22)
     playerent *h = player1->isspectating() && player1->followplayercn >= 0 && (player1->spectatemode == SM_FOLLOW1ST || player1->spectatemode == SM_FOLLOW3RD || player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) ? getclient(player1->followplayercn) : NULL;
     if(!h) h = player1;
-    //exechook(HOOK_SP, "onHit", "%d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0);
+    exechook(HOOK_SP, "onHit", "%d %d %d %d %d", actor->clientnum, pl->clientnum, damage, gun, gib ? 1 : 0); // disable on release
 
     if(actor==h && pl!=actor)
     {
@@ -995,11 +995,11 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
         if(pl != act) act->tks++;
         if(!m_mp(gamemode)) act->frags--;
     }
-    else if(!m_mp(gamemode)) act->frags += ( gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN) ? 2 : 1;
+    else if(!m_mp(gamemode)) act->frags += ( gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN && gun != GUN_ASSAULT && gun != GUN_CARBINE && gun != GUN_SUBGUN && gun != GUN_PISTOL && gun != GUN_AKIMBO) ? 2 : 1;
 
     if(gib)
     {
-        if(pl!=act && gun == GUN_SNIPER || GUN_ASSAULT || GUN_PISTOL || GUN_SUBGUN || GUN_SHOTGUN || GUN_CARBINE) audiomgr.playsound(S_HEADSHOT, SP_LOW);
+        if(pl!=act && gun == GUN_SNIPER || GUN_ASSAULT || GUN_PISTOL || GUN_SUBGUN || GUN_SHOTGUN || GUN_CARBINE || GUN_AKIMBO) audiomgr.playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
 
