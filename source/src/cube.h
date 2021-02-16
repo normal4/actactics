@@ -55,12 +55,13 @@ extern hashtable<char *, enet_uint32> mapinfo;
 extern int hwtexsize, hwmaxaniso;
 extern int maploaded, msctrl;
 extern float waterlevel;
-extern int clientpaused;
+extern bool clientpaused;
+extern bool clienthalftime;
 
-#define AC_VERSION 1202
-#define AC_MASTER_URI "ms.cubers.net"
+#define AC_VERSION 1901
+#define AC_MASTER_URI "127.0.0.1"
 #define AC_MASTER_PORT 28760
-#define MAXCL 16
+#define MAXCL 32
 #define CONFIGROTATEMAX 5               // keep 5 old versions of saved.cfg and init.cfg around
 
 #define DEFAULT_FOG 180

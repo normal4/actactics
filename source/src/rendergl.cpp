@@ -518,6 +518,7 @@ void recomputecamera()
                 resetcamera();
                 camera1->eyeheight = 1.0f;
                 break;
+            
             case SM_OVERVIEW:
             {
                 // TODO : fix water rendering
@@ -532,6 +533,7 @@ void recomputecamera()
                 
                 break;
             }
+            
             case SM_FOLLOW1ST:
             {
                 playerent *f = updatefollowplayer();

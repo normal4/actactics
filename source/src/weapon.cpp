@@ -843,16 +843,17 @@ void raydamage(vec &from, vec &to, playerent *d)
     else if((o = intersectclosest(from, to, d, distsquared, hitzone)))
     {
         bool gib = false;
+        
         switch(d->weaponsel->type)
         {
             case GUN_KNIFE: gib = true; break;
             case GUN_SNIPER: if(d==player1 && hitzone==HIT_HEAD) { dam *= 3; gib = true; }; break;
-            case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.18; gib = true; }; break;
-            case GUN_AKIMBO: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
-            case GUN_SUBGUN: if (d==player1 && hitzone==HIT_HEAD) { dam *= 2.15; gib = true; }; break;
-            case GUN_SHOTGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
-            case GUN_CARBINE: if (d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = true; }; break;
-            case GUN_PISTOL: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.5; gib = true; }; break;
+            //case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.18; gib = true; }; break;
+            //case GUN_AKIMBO: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
+            //case GUN_SUBGUN: if (d==player1 && hitzone==HIT_HEAD) { dam *= 2.15; gib = true; }; break;
+            //case GUN_SHOTGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
+            case GUN_CARBINE: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; }; break;
+            //case GUN_PISTOL: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.5; gib = true; }; break;
             default: break;
         }
         bool info = gib;
@@ -1569,8 +1570,9 @@ assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 int assaultrifle::dynspread() {
     if (shots == 1) return 1;
     else if (shots == 2) return 23;
-    else if (shots > 2 && shots <= 4) return 40;
-    else if (shots > 5) return 80; 
+    else if (shots == 3 || shots == 4) return 40;
+    else if (shots >= 5) return 80;
+    else return 0; 
     //return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); 
     //return shots > 3 ? 55 : 1;
     }

@@ -37,11 +37,12 @@ void processevent(client *c, shotevent &e)
 {
     clientstate &gs = c->state;
     int wait = e.millis - gs.lastshot;
-    if(!gs.isalive(gamemillis) ||
-       !valid_weapon(e.gun) ||
-       wait<gs.gunwait[e.gun] ||
-       gs.mag[e.gun]<=0)
-        return;
+    /*
+    if (!gs.isalive(gamemillis) ||
+        !valid_weapon(e.gun) ||
+        wait < gs.gunwait[e.gun] ||
+        gs.mag[e.gun] <= 0)
+    */
 
     if(e.gun == GUN_AKIMBO && gs.akimbomillis < gamemillis) return;
     if(e.gun!=GUN_KNIFE) gs.mag[e.gun]--;
@@ -213,7 +214,7 @@ void processevents()
             if(e.type<GE_SUICIDE)
             {
                 if(e.shot.millis>gamemillis) break;
-                if(e.shot.millis<c->lastevent) { clearevent(c); continue; }
+                //if(e.shot.millis<c->lastevent) { clearevent(c); continue; }
                 c->lastevent = e.shot.millis;
             }
             switch(e.type)

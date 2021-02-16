@@ -999,7 +999,7 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     if(gib)
     {
-        if(pl!=act && gun == GUN_SNIPER || GUN_ASSAULT || GUN_PISTOL || GUN_SUBGUN || GUN_SHOTGUN || GUN_CARBINE || GUN_AKIMBO) audiomgr.playsound(S_HEADSHOT, SP_LOW);
+        if(pl!=act && gun == GUN_SNIPER || gun == GUN_ASSAULT || gun == GUN_PISTOL || gun == GUN_SUBGUN || gun == GUN_SHOTGUN || gun == GUN_CARBINE || gun == GUN_AKIMBO) audiomgr.playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
 
@@ -1358,7 +1358,7 @@ COMMAND(dropflag, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "%s server", "%s server"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "switch teams", "%s server", "%s server"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1475,6 +1475,7 @@ void callvote(int type, const char *arg1, const char *arg2, const char *arg3)
                 break;
             case SA_REMBANS:
             case SA_SHUFFLETEAMS:
+            case SA_SWITCHTEAMS:
                 break;
             case SA_FORCETEAM:
                 putint(p, atoi(arg1));

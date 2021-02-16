@@ -18,7 +18,7 @@ extern weaponinfo_s WeaponInfoTable[MAX_WEAPONS];
 vec CBot::GetEnemyPos(playerent *d)
 {
     // Aim offset idea by botman
-    vec o = m_pMyEnt->weaponsel->type == (GUN_SNIPER || GUN_ASSAULT || GUN_PISTOL || GUN_SUBGUN || GUN_SHOTGUN || GUN_CARBINE) && d->head.x >= 0 ? d->head : d->o, offset;
+    vec o = m_pMyEnt->weaponsel->type == GUN_SNIPER && d->head.x >= 0 ? d->head : d->o, offset;
     float flDist = GetDistance(o), flScale;
 
     if (m_pBotSkill->bCanPredict)

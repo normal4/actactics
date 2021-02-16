@@ -182,6 +182,7 @@ void disconnect(int onlyclean, int async)
 
     if(cleanup)
     {
+        clientpaused = 0;
         player1->clientnum = -1;
         player1->lifesequence = 0;
         player1->clientrole = CR_DEFAULT;

@@ -1329,6 +1329,10 @@ int main(int argc, char **argv)
             {
                 curtime = 0;
             }
+            if (clienthalftime)
+            {
+
+            }
         } 
         lastmillis += curtime;
         totalmillis = millis;

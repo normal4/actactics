@@ -8,7 +8,8 @@ VARP(networkdebug, 0, 0, 1);
 
 extern bool watchingdemo;
 extern string clientpassword;
-extern int clientpaused = 0;
+extern bool clientpaused = 0;
+extern bool clienthalftime = 0; 
 
 void *downloaddemomenu = NULL;
 static vector<mline> demo_mlines;
@@ -1286,6 +1287,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                         break;
                     case SA_REMBANS:
                     case SA_SHUFFLETEAMS:
+                    case SA_SWITCHTEAMS:
                         v = newvotedisplayinfo(d, type, NULL, NULL);
                         break;
                     case SA_FORCETEAM:
@@ -1424,6 +1426,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 clientpaused = getint(p);
                 break;
+            }
+            case SV_HALFTIME:
+            {
+                clienthalftime = getint(p);
+                if (clienthalftime == 1)
+                {
+                    hudoutf("\f2Half time!");
+                }
+                else if (clienthalftime == 0)
+                {
+                    hudoutf("\f2Next half starting.. fight!"); 
+                }
+                break; 
             }
             default:
                 neterr("type");

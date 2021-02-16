@@ -186,7 +186,7 @@ struct entitystats_s
 
 // legacy
 
-#define MAXMHEIGHT 30
-#define MAXMAREA 10000
-#define MAXHHITS 50000                  // was 6000, which denied my fav. maps - jamz, 2012-06-12; 15000 denies sane map too - lucas
-#define MINFF 2500
+#define MAXMHEIGHT 30000
+#define MAXMAREA 10000000
+#define MAXHHITS 50000000                  // go insane, idc
+#define MINFF 1

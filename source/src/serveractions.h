@@ -132,7 +132,7 @@ struct mapaction : serveraction
         else
         {
             int mp = findmappath(map);
-            mapok = mp == MAP_LOCAL || mp == MAP_OFFICIAL;    // clients can only load from packages/maps and packages/maps/official
+            mapok = (mp == MAP_LOCAL || mp == MAP_OFFICIAL);    // clients can only load from packages/maps and packages/maps/official
 #ifndef STANDALONE
             if(!mapok) conoutf("\f3map '%s' not found", map);
 #endif
@@ -246,7 +246,7 @@ struct mastermodeaction : serveraction
 {
     int mode;
     void perform() { changemastermode(mode); }
-    bool isvalid() { return mode >= 0 && mode < MM_NUM; }
+    bool isvalid() { return mode >= 0 && mode < MM_NUM + 1; } 
     mastermodeaction(int mode) : mode(mode)
     {
         role = roleconf('M');
@@ -285,10 +285,26 @@ struct shuffleteamaction : serveraction
     bool isvalid() { return serveraction::isvalid() && m_teammode; }
     shuffleteamaction()
     {
-        role = roleconf('S');
+        role = roleconf('s');
         if(isvalid()) copystring(desc, "shuffle teams");
     }
 };
+
+struct switchteamaction : serveraction
+{
+    void perform()
+    {
+        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SWITCH);
+        switchteams();
+    }
+    bool isvalid() { return serveraction::isvalid() && m_teammode; }
+    switchteamaction()
+    {
+        role = roleconf('s');
+        if (isvalid()) copystring(desc, "switching teams");
+    }
+};
+
 
 struct recorddemoaction : enableaction            // TODO: remove completely
 {
@@ -359,9 +375,10 @@ struct pauseaction : serveraction
             sendf(-1, 1, "ri2", SV_PAUSE, 1);
             servercurtime(ispaused);
         }
-        if (ispaused == 0)
+        else if (ispaused == 0)
         {
             sendf(-1, 1, "ri2", SV_PAUSE, 0);
+            gamemillis += pausemillis; 
             servercurtime(ispaused);
         }
     }
@@ -378,7 +395,7 @@ struct pauseaction : serveraction
             formatstring(desc)("pause the server");
         }
     }
-};
+}; 
 
 /*
 struct compaction : serveraction

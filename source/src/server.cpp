@@ -41,7 +41,7 @@ vector<ban> bans;
 vector<demofile> demofiles;
 
 int locked = 0;
-int serverpaused = 0;
+bool serverpaused = 0;
 int mastermode = MM_PUBLIC;
 static bool autoteam = true;
 int matchteamsize = 0;
@@ -58,7 +58,12 @@ bool custom_servdesc = false;
 string smapname, nextmapname;
 int smode = 0, nextgamemode;
 int interm = 0;
-static int minremain = 0, gamemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
+static bool halftime = 0;
+static int htlimit = 15000; 
+static int htcurtime = 0; 
+static int htstarttime = 0;
+static int secremain = 0, minremain = 0, gamemillis = 0, pausemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
+
 mapstats smapstats;
 vector<server_entity> sents;
 char *maplayout = NULL, *testlayout = NULL;
@@ -360,20 +365,27 @@ void changemastermode(int newmode)
 {
     if(mastermode != newmode)
     {
-        mastermode = newmode;
-        senddisconnectedscores(-1);
-        if(mastermode != MM_MATCH)
+        if (newmode == 2) //everyone types /mastermode 2 ...
         {
-            loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
-            {
-                if(clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
-            }
+            mastermode = newmode - 1;
         }
-        else if(matchteamsize) changematchteamsize(matchteamsize);
-        
-        if (scl.matchlockmode = 0)
+        else
         {
-            locked = 1;
+            mastermode = newmode;
+            senddisconnectedscores(-1);
+            if (mastermode != MM_MATCH)
+            {
+                loopv(clients) if (clients[i]->type != ST_EMPTY && clients[i]->isauthed)
+                {
+                    if (clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
+                }
+            }
+            else if (matchteamsize) changematchteamsize(matchteamsize);
+
+            if (scl.matchlockmode == 0)
+            {
+                locked = 1;
+            }
         }
         
     sendservermode();
@@ -1827,6 +1839,20 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
     }
 }
 
+void switchteams()
+{
+    logline(ACLOG_INFO, "Switching teams");
+    loopv(clients)
+    {
+        client* cl = clients[i];
+        if (cl && cl->type == ST_TCPIP && cl->isauthed)
+        {
+            updateclientteam(cl->clientnum, team_opposite(cl->team), FTR_SILENTFORCE);
+        }
+    }
+}
+
+
 bool balanceteams(int ftr)  // pro vs noobs never more
 {
     if(mastermode != MM_PUBLIC || totalclients < 3 ) return true;
@@ -2025,7 +2051,9 @@ void resetserver(const char *newname, int newmode, int newtime)
 
     minremain = newtime > 0 ? newtime : defaultgamelimit(newmode);
     gamemillis = 0;
+    htcurtime = 0;
     gamelimit = minremain*60000;
+    secremain = minremain*60; 
     arenaround = arenaroundstartmillis = 0;
     memset(&smapstats, 0, sizeof(smapstats));
 
@@ -3641,6 +3669,9 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_SHUFFLETEAMS:
                         vi->action = new shuffleteamaction();
                         break;
+                    case SA_SWITCHTEAMS:
+                        vi->action = new switchteamaction();
+                        break;
                     case SA_FORCETEAM:
                         vi->num1 = getint(p);
                         vi->num2 = getint(p);
@@ -3811,10 +3842,32 @@ void checkintermission()
     if(minremain>0)
     {
         minremain = (gamemillis>=gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-        sendf(-1, 1, "ri3", SV_TIMEUP, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis, gamelimit);
+        sendf(-1, 1, "ri3", SV_TIMEUP, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis, gamelimit); 
     }
+
     if(!interm && minremain<=0) interm = gamemillis+10000;
     forceintermission = false;
+}
+
+void checkhalftime()
+{
+    if (minremain > 0)
+    {
+        secremain = (gamemillis >= gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 1000 - 1) / 1000;
+        if ((secremain == minremain * 30) && halftime == 0)
+        {
+            halftime = 1; 
+            logline(ACLOG_INFO, "Half time!");
+            serverpaused = 1;
+            sendf(-1, 1, "ri2", SV_PAUSE, 1);
+            sendf(-1, 1, "ri2", SV_HALFTIME, 1);
+            switchteams(); 
+            if (m_flags)
+            {
+                ctfreset(); sendflaginfo();
+            }
+        }
+    }
 }
 
 void resetserverifempty()
@@ -3971,20 +4024,25 @@ void linequalitystats(int elapsed)
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
     static int msend = 0, mrec = 0, csend = 0, crec = 0, mnum = 0, cnum = 0;
+
 #ifdef STANDALONE
     int nextmillis = (int)enet_time_get();
-    if(svcctrl) svcctrl->keepalive();
+    if (svcctrl) svcctrl->keepalive();
 #else
     int nextmillis = isdedicated ? (int)enet_time_get() : lastmillis;
-#endif
+#endif 
+
+    
     int diff = nextmillis - servmillis;
-    if (serverpaused == 0)
-    {
-        gamemillis += diff;
-        servmillis = nextmillis;
-        servertime = ((diff + 3 * servertime) >> 2);
-        if (servertime > 40) serverlagged = servmillis;
-    }
+    
+    if (serverpaused == 1) pausemillis += servertime;
+    if (serverpaused == 0) gamemillis += diff;
+
+    servmillis = nextmillis;
+    servertime = ((diff + 3 * servertime) >> 2);
+    if (servertime > 40) serverlagged = servmillis;
+   
+    //logline(ACLOG_INFO, "gamemillis %d, servmillis %d, servertime %d, nextmillis %d, pausemillis %d", gamemillis, servmillis, servertime, nextmillis, pausemillis);
 
 #ifndef STANDALONE
     if(m_demo)
@@ -3995,7 +4053,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     }
 #endif
 
-    if(minremain>0)
+    if(minremain>0 && serverpaused == 0)
     {
         processevents();
         checkitemspawns(diff);
@@ -4030,9 +4088,41 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     int nonlocalclients = numnonlocalclients();
 
-    if(forceintermission || ((smode>1 || (gamemode==0 && nonlocalclients)) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000))
+    if (forceintermission || ((smode > 1 || (gamemode == 0 && nonlocalclients)) && gamemillis - diff > 0 && gamemillis / 60000 != (gamemillis - diff) / 60000))
+    {
         checkintermission();
+    }
+
+    //halftime
+    if (((smode > 1 || (gamemode == 0 && nonlocalclients)) &&
+        mastermode == MM_MATCH &&
+        m_teammode &&
+        halftime == 0 &&
+        gamemillis - diff > 0 &&
+        gamemillis / 30000 != (gamemillis - diff) / 30000))
+    {
+        checkhalftime();
+    }
+
+    if (halftime == 1)
+    {
+        htcurtime += diff;
+        if (htcurtime/htlimit != (htcurtime - diff) / htlimit) 
+        {
+            halftime = 0;
+            serverpaused = 0;
+            sendf(-1, 1, "ri2", SV_PAUSE, 0);
+            sendf(-1, 1, "ri2", SV_HALFTIME, 0);
+            logline(ACLOG_INFO, "Next half starting..");
+            
+        }
+    }
+
+    //logline(ACLOG_INFO, "\f2htcurtime %d, htlimit %d, halftime %d, diff %d", htcurtime, htlimit, halftime, diff); 
+    //debug half time
+
     if(m_demo && !demoplayback) maprot.restart();
+
     else if(interm && ( (scl.demo_interm && sending_demo) ? gamemillis>(interm<<1) : gamemillis>interm ) )
     {
         sending_demo = false;

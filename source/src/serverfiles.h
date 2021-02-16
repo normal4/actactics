@@ -738,8 +738,10 @@ int FlagFlag = MINFF * 1000;
 int Mvolume, Marea, SHhits, Mopen = 0;
 float Mheight = 0;
 
+
 bool mapisok(mapstats *ms)
 {
+
     if ( Mheight > MAXMHEIGHT ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The overall ceil height is too high (%.1f cubes)", Mheight); return false; }
     if ( Mopen > MAXMAREA ) { logline(ACLOG_INFO, "MAP CHECK FAIL: There is a big open area in this (hint: use more solid walls)"); return false; }
     if ( SHhits > MAXHHITS ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Too high height in some parts of the map (%d hits)", SHhits); return false; }
@@ -759,7 +761,8 @@ bool mapisok(mapstats *ms)
         FlagFlag = pow2(fl[0].x - fl[1].x) + pow2(fl[0].y - fl[1].y);
     }
     else FlagFlag = MINFF * 1000; // the map has no flags
-
+    
+    /*
     if ( FlagFlag < MINFF ) { logline(ACLOG_INFO, "MAP CHECK FAIL: The flags are too close to each other"); return false; }
 
     for (int i = 0; i < ms->hdr.numents; i++)
@@ -786,7 +789,7 @@ bool mapisok(mapstats *ms)
             density += r2;
         }
 /*        if (hdensity > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK H %s %f", entnames[v], hdensity); }
-        if (density > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK D %s %f", entnames[v], density); }*/
+        if (density > 0.0f) { logline(ACLOG_INFO, "ITEM CHECK D %s %f", entnames[v], density); }
         if ( hdensity > 0.5f ) { logline(ACLOG_INFO, "MAP CHECK FAIL: Items too close %s %.2f (%hd,%hd)", entnames[v],hdensity,p[0],p[1]); return false; }
         switch(v)
         {
@@ -802,6 +805,10 @@ bool mapisok(mapstats *ms)
 #undef LOGTHISSWITCH
         }
     }
+    */
+
+    // UNDEAD: map requisites = why? give me a good reason. if you dont want crap maps, disable uploads, and curate your server. 
+
     return true;
 }
 
