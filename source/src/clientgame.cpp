@@ -626,15 +626,18 @@ int lastspawnattempt = 0;
 void showrespawntimer()
 {
     if(intermission || spawnpermission > SP_OK_NUM) return;
-    if(m_arena)
+    if (!clienthalftime)
     {
-        if(!arenaintermission) return;
-        showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
-    }
-    else if(player1->state==CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
-    {
-        int secs = 5;
-        showhudtimer(secs, player1->lastdeath, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+        if (m_arena)
+        {
+            if (!arenaintermission) return;
+            showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt + 100);
+        }
+        else if (player1->state == CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode == SM_DEATHCAM))
+        {
+            int secs = 5;
+            showhudtimer(secs, player1->lastdeath, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt + 100);
+        }
     }
 }
 
@@ -1021,27 +1024,31 @@ COMMAND(pstat_weap, "i");
 VAR(minutesremaining, 1, 0, 0);
 VAR(gametimecurrent, 1, 0, 0);
 VAR(gametimemaximum, 1, 0, 0);
+VAR(halftimecurrent, 1, 0, 0);
+VAR(halftimemaximum, 1, 0, 0);
 VAR(lastgametimeupdate, 1, 0, 0);
 
-void silenttimeupdate(int milliscur, int millismax)
+void silenttimeupdate(int milliscur, int millismax, int htmillismax, int htmilliscur)
 {
     lastgametimeupdate = lastmillis;
     gametimecurrent = milliscur;
     gametimemaximum = millismax;
+    halftimecurrent = htmilliscur;
+    halftimemaximum = htmillismax; 
     minutesremaining = (gametimemaximum - gametimecurrent + 60000 - 1) / 60000;
 }
 
-void timeupdate(int milliscur, int millismax)
+void timeupdate(int milliscur, int millismax, int htmillismax, int htmilliscur)
 {
     static int lastgametimedisplay = 0;
-
-    silenttimeupdate(milliscur, millismax);
+    silenttimeupdate(milliscur, millismax, htmillismax, htmilliscur);
     int lastdisplay = lastmillis - lastgametimedisplay;
     if(lastdisplay >= 0 && lastdisplay <= 1000) return; // avoid double-output
     lastgametimedisplay = lastmillis;
 
     if(!minutesremaining)
     {
+        halftimemaximum = 0; 
         intermission = true;
         extern bool needsautoscreenshot;
         if(autoscreenshot) needsautoscreenshot = true;
@@ -1054,6 +1061,8 @@ void timeupdate(int milliscur, int millismax)
     }
     else
     {
+        if(htmillismax>=1000) halftimemaximum = htmillismax;
+        if(htmilliscur>=1000) halftimecurrent = htmilliscur;
         extern int gametimedisplay; // only output to console if no hud-clock with game time is being shown
         int sec = 60 - ( (gametimecurrent + ( lastmillis - lastgametimeupdate ) ) / 1000) % 60;
         if(minutesremaining==1)
@@ -1062,8 +1071,14 @@ void timeupdate(int milliscur, int millismax)
             hudoutf("%s1 minute left!", sec==60 ? "" : "less than ");
             exechook(HOOK_SP_MP, "onLastMin", "");
         }
-        else if(!gametimedisplay) conoutf("time remaining: %d minutes", minutesremaining);
-        else clientlogf("time remaining: %d minutes", minutesremaining);
+        else if (!gametimedisplay)
+        {
+            conoutf("time remaining: %d minutes", minutesremaining);
+        }
+        else
+        {
+            clientlogf("time remaining: %d minutes", minutesremaining);
+        }
     }
 }
 

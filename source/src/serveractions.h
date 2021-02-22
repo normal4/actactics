@@ -367,7 +367,7 @@ struct lockaction : serveraction
 
 struct pauseaction : serveraction
 {
-    int ispaused; 
+    bool ispaused; 
     void perform() 
     {
         if (ispaused == 1)
@@ -378,12 +378,12 @@ struct pauseaction : serveraction
         else if (ispaused == 0)
         {
             sendf(-1, 1, "ri2", SV_PAUSE, 0);
-            gamemillis += pausemillis; 
+            //gamemillis += pausemillis; remove if no issues on release
             servercurtime(ispaused);
         }
     }
-    bool isvalid() { return ispaused >= 0 && ispaused <= 1 && mastermode == MM_MATCH; }
-    pauseaction (int ispaused) : ispaused(ispaused)
+    bool isvalid() { return (ispaused == 0 || ispaused == 1) && mastermode == MM_MATCH; }
+    pauseaction (bool ispaused) : ispaused(ispaused)
     {
         role = roleconf('J');
         if (ispaused == 0)

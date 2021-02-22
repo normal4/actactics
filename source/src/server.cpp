@@ -59,7 +59,6 @@ string smapname, nextmapname;
 int smode = 0, nextgamemode;
 int interm = 0;
 static bool halftime = 0;
-static int htlimit = 15000; 
 static int htcurtime = 0; 
 static int htstarttime = 0;
 static int secremain = 0, minremain = 0, gamemillis = 0, pausemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
@@ -382,12 +381,12 @@ void changemastermode(int newmode)
             }
             else if (matchteamsize) changematchteamsize(matchteamsize);
 
-            if (scl.matchlockmode == 0)
-            {
-                locked = 1;
-            }
+           
         }
-        
+        if (scl.matchlockmode == 1)
+        {
+            locked = 1;
+        }
     sendservermode();
     }
 }
@@ -2147,7 +2146,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         {
             // change map
             sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapbuffer.available(), mapbuffer.revision);
-            if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri3", SV_TIMEUP, gamemillis, gamelimit);
+            if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri5", SV_TIMEUP, gamemillis, gamelimit, scl.ht_limit, htcurtime);
         }
         packetbuf q(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         send_item_list(q); // always send the item list when a game starts
@@ -2708,7 +2707,8 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, SV_TIMEUP);
             putint(p, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis);
             putint(p, gamelimit);
-            //putint(p, minremain*60);
+            putint(p, scl.ht_limit);
+            putint(p, htcurtime); 
         }
         send_item_list(p); // this includes the flags
     }
@@ -3842,7 +3842,7 @@ void checkintermission()
     if(minremain>0)
     {
         minremain = (gamemillis>=gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
-        sendf(-1, 1, "ri3", SV_TIMEUP, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis, gamelimit); 
+        sendf(-1, 1, "ri5", SV_TIMEUP, (gamemillis>=gamelimit || forceintermission) ? gamelimit : gamemillis, gamelimit, scl.ht_limit, htcurtime); 
     }
 
     if(!interm && minremain<=0) interm = gamemillis+10000;
@@ -4042,14 +4042,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     servertime = ((diff + 3 * servertime) >> 2);
     if (servertime > 40) serverlagged = servmillis;
    
-    //logline(ACLOG_INFO, "gamemillis %d, servmillis %d, servertime %d, nextmillis %d, pausemillis %d", gamemillis, servmillis, servertime, nextmillis, pausemillis);
-
 #ifndef STANDALONE
     if(m_demo)
     {
         readdemo();
-        extern void silenttimeupdate(int milliscur, int millismax);
-        silenttimeupdate(gamemillis, gametimemaximum);
+        extern void silenttimeupdate(int milliscur, int millismax, int htmillismax, int htmilliscur);
+        silenttimeupdate(gamemillis, gametimemaximum, halftimecurrent, halftimemaximum);
     }
 #endif
 
@@ -4107,14 +4105,24 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if (halftime == 1)
     {
         htcurtime += diff;
-        if (htcurtime/htlimit != (htcurtime - diff) / htlimit) 
+        
+        if (htcurtime/scl.ht_limit != (htcurtime - diff) / scl.ht_limit)
         {
             halftime = 0;
             serverpaused = 0;
             sendf(-1, 1, "ri2", SV_PAUSE, 0);
             sendf(-1, 1, "ri2", SV_HALFTIME, 0);
             logline(ACLOG_INFO, "Next half starting..");
+            loopv(clients) if ((clients[i]->team == TEAM_CLA || clients[i]->team == TEAM_RVSF) && clients[i]->isauthed)
+            {
+                if (clients[i]->isonrightmap)
+                    sendspawn(clients[i]);
+            }
             
+        }
+        else
+        {
+            sendf(-1, 1, "ri2", SV_HTCURTIME, htcurtime);
         }
     }
 

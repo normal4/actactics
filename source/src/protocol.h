@@ -1,11 +1,11 @@
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
-#define DEFAULTCLIENTS 6
+#define DEFAULTCLIENTS 8
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_DEFAULT_SERVER_PORT 28763
 #define CUBE_SERVINFO_PORT_LAN 28762
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 1201           // bump when protocol changes (use negative numbers for mods!)
+#define PROTOCOL_VERSION 1901           // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 2                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 #define DEMO_MINTIME 10000              // don't keep demo recordings with less than 10 seconds
@@ -47,6 +47,7 @@ enum
     SV_MAPIDENT, SV_HUDEXTRAS, SV_POINTS,
     SV_PAUSE,
     SV_HALFTIME, 
+    SV_HTCURTIME, 
     SV_NUM
 };
 

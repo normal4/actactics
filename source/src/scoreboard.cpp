@@ -368,6 +368,7 @@ void renderscores(void *menu, bool init)
 
     extern int minutesremaining, gametimedisplay;
     extern string gtime;
+    extern string ghttime; 
 
     if((gamemode>1 || (gamemode==0 && (multiplayer(NULL) || watchingdemo))) && minutesremaining >= 0)
     {
@@ -393,11 +394,16 @@ void renderscores(void *menu, bool init)
                 else concatformatstring(modeline, ", \f1%s wins!", scores[0]->name);
             }
         }
+        
         else
         {
             concatformatstring(modeline, ", %s", gtime);
             if(gametimedisplay == 2) concatformatstring(modeline, " / %d:00", gametimemaximum/60000);
             else concatformatstring(modeline, " remaining");
+            if (clienthalftime)
+            {
+                concatformatstring(modeline, ", Halftime: %s remaining", ghttime);
+            }
         }
     }
 

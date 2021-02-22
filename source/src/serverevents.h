@@ -36,7 +36,7 @@ void processevent(client *c, explodeevent &e)
 void processevent(client *c, shotevent &e)
 {
     clientstate &gs = c->state;
-    int wait = e.millis - gs.lastshot;
+    //int wait = e.millis - gs.lastshot;
     /*
     if (!gs.isalive(gamemillis) ||
         !valid_weapon(e.gun) ||
@@ -99,7 +99,7 @@ void processevent(client *c, shotevent &e)
                         damage *= 3;
                     }
 
-
+                    /*
                     if ((e.gun == GUN_ASSAULT) && h.info != 0)
                     {
                         gib = true;
@@ -129,7 +129,7 @@ void processevent(client *c, shotevent &e)
                         gib = true;
                         damage *= 1.5;
                     }
-
+                    */
                     if ((e.gun == GUN_CARBINE) && h.info != 0)
                     {
                         gib = true;

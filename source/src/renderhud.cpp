@@ -778,6 +778,7 @@ VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
 VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
 string gtime;
+string ghttime;
 int dimeditinfopanel = 255;
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater, int elapsed)
@@ -947,7 +948,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         int cssec = (gametimecurrent+(lastmillis-lastgametimeupdate))/1000;
         int gtsec = cssec%60;
         int gtmin = cssec/60;
-        if(gametimedisplay == 1)
+        if(gametimedisplay)
         {
             int gtmax = gametimemaximum/60000;
             gtmin = gtmax - gtmin;
@@ -956,9 +957,17 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 gtmin -= 1;
                 gtsec = 60 - gtsec;
             }
+            formatstring(gtime)("%02d:%02d", gtmin, gtsec);
+            draw_text(gtime, (VIRTW - 225 - 10) * 2 - (text_width(gtime) / 2 + FONTH / 2), 20);
         }
-        formatstring(gtime)("%02d:%02d", gtmin, gtsec);
-        if(gametimedisplay) draw_text(gtime, (VIRTW-225-10)*2 - (text_width(gtime)/2 + FONTH/2), 20);
+
+        int htsec = halftimemaximum/1000 - (halftimecurrent / 1000); 
+        int htmin = halftimemaximum/60000 - (halftimecurrent / 60000);
+
+        if (clienthalftime)
+        {
+            formatstring(ghttime)("%02d:%02d", htmin, htsec);
+        }
     }
 
     if(hidevote < 2 && multiplayer(NULL))

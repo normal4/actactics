@@ -4,8 +4,8 @@
 
 #define DEBUGCOND (audiodebug==1)
 
-VAR(al_referencedistance, 0, 400, 1000000);
-VAR(al_rollofffactor, 0, 100, 1000000);
+int al_referencedistance = 400; 
+int al_rollofffactor = 100;
 
 // represents an OpenAL source, an audio emitter in the 3D world
 

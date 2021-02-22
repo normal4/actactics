@@ -1043,7 +1043,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 int curgamemillis = getint(p);
                 int curgamelimit = getint(p);
-                timeupdate(curgamemillis, curgamelimit);
+                int halftimelimit = getint(p);
+                int halfcurtime = getint(p);
+                timeupdate(curgamemillis, curgamelimit, halftimelimit, halfcurtime);
                 break;
             }
 
@@ -1430,6 +1432,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             case SV_HALFTIME:
             {
                 clienthalftime = getint(p);
+                
                 if (clienthalftime == 1)
                 {
                     hudoutf("\f2Half time!");
@@ -1439,6 +1442,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
                     hudoutf("\f2Next half starting.. fight!"); 
                 }
                 break; 
+            }
+            case SV_HTCURTIME:
+            {
+                halftimecurrent = getint(p);
+                break;
             }
             default:
                 neterr("type");
