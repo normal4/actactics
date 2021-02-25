@@ -1324,14 +1324,9 @@ int main(int argc, char **argv)
                 curtime += skipmillisnow;
                 skipmillis -= skipmillisnow;
             }
-            
             if (paused || clientpaused )
             {
                 curtime = 0;
-            }
-            if (clienthalftime)
-            {
-
             }
         } 
         lastmillis += curtime;

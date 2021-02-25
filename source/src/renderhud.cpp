@@ -703,7 +703,7 @@ void drawteamicons(int w, int h, bool spect)
 int damageblendmillis = 0;
 void *damageblendplayer = NULL;
 
-VARFP(damagescreen, 0, 1, 1, { if(!damagescreen) damageblendmillis = 0; });
+VARFP(damagescreen, 0, 0, 1, { if(!damagescreen) damageblendmillis = 0; });
 VARP(damagescreenfactor, 1, 7, 100);
 VARP(damagescreenalpha, 1, 45, 100);
 VARP(damagescreenfade, 0, 125, 1000);

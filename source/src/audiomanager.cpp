@@ -569,14 +569,16 @@ void audiomanager::updateaudio()
     bool firstperson = camera1==player1 || (player1->isspectating() && player1->spectatemode==SM_DEATHCAM);
 
     // footsteps
-    updateplayerfootsteps(player1);
-    loopv(players)
+    if (!clientpaused)
     {
-        playerent *p = players[i];
-        if(!p) continue;
-        updateplayerfootsteps(p);
+        updateplayerfootsteps(player1);
+        loopv(players)
+        {
+            playerent* p = players[i];
+            if (!p) continue;
+            updateplayerfootsteps(p);
+        }
     }
-
     // water
     bool underwater = /*alive &&*/ firstperson && waterlevel > player1->o.z + player1->aboveeye;
     updateloopsound(S_UNDERWATER, underwater);

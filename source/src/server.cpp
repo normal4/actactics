@@ -2710,6 +2710,7 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, scl.ht_limit);
             putint(p, htcurtime); 
         }
+        sendf(-1, 1, "ri2", SV_PAUSE, serverpaused);
         send_item_list(p); // this includes the flags
     }
     savedscore *sc = NULL;

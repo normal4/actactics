@@ -694,19 +694,21 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     }
     sleepssemaphore->post();
 
-    syncentchanges();
-    physicsframe();
-    checkweaponstate();
-    if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
-    movebounceents();
-    moveotherplayers();
-    gets2c();
+    if (!clientpaused)
+    {
+        if ((getclientnum() >= 0)) shoot(player1, worldpos);     // only shoot when connected to server moveotherplayers();
+        movebounceents();
+        checkweaponstate();
+        syncentchanges();
+        movelocalplayer();
+        physicsframe();
+    }
     showrespawntimer();
+    gets2c();
 
     // Added by Rick: let bots think
     if(m_botmode) BotManager.Think();
 
-    movelocalplayer();
     c2sinfo(player1);   // do this last, to reduce the effective frame lag
 }
 
