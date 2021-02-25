@@ -2051,6 +2051,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     minremain = newtime > 0 ? newtime : defaultgamelimit(newmode);
     gamemillis = 0;
     htcurtime = 0;
+    serverpaused = halftime = 0;
     gamelimit = minremain*60000;
     secremain = minremain*60; 
     arenaround = arenaroundstartmillis = 0;
@@ -2711,6 +2712,7 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, htcurtime); 
         }
         sendf(-1, 1, "ri2", SV_PAUSE, serverpaused);
+        sendf(-1, 1, "ri2", SV_HALFTIME, halftime);
         send_item_list(p); // this includes the flags
     }
     savedscore *sc = NULL;
@@ -3854,8 +3856,10 @@ void checkhalftime()
 {
     if (minremain > 0)
     {
-        secremain = (gamemillis >= gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 1000 - 1) / 1000;
-        if ((secremain == minremain * 30) && halftime == 0)
+        secremain = (gamemillis >= gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 1000 - 1)/1000;
+        logline(ACLOG_INFO, "secremain: %d", secremain);
+        logline(ACLOG_INFO, "secremain: %d", (gamelimit / 2) / 1000);
+        if (secremain == ((gamelimit/2)/1000) && halftime == 0)
         {
             halftime = 1; 
             logline(ACLOG_INFO, "Half time!");
@@ -3877,6 +3881,8 @@ void resetserverifempty()
     resetserver("", 0, 10);
     matchteamsize = 0;
     autoteam = true;
+    serverpaused = 0;
+    halftime = 0; 
     changemastermode(MM_PUBLIC);
     nextmapname[0] = '\0';
 }
