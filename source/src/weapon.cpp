@@ -1482,15 +1482,18 @@ bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 int subgun::dynspread() { 
-    if (shots == 1) return 20;
+    
+    /*
+    if (shots == 1) return 10;
     else if (shots > 1 && shots <= 3) return 45;
     else if (shots > 5 && shots <= 12) return 70;
     else if (shots > 12) return 120;
 
     return shots > 2 ? 120 : 1;
-    //return shots > 3 ? 80 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); 
-} // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
+    **/
 
+    return shots > 3 ? 80 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); 
+} // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
 
 // sniperrifle
 
