@@ -11,6 +11,7 @@
 #include "entity.h"
 #include "world.h"
 #include "command.h"
+#include "octa.h"
 
 #ifndef STANDALONE
  #include "varray.h"

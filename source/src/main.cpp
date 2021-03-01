@@ -857,6 +857,17 @@ const char *rndmapname()
     else return "";
 }
 
+void loadcrosshairnames()
+{
+    loopi(NUMGUNS) crosshairnames[i] = gunnames[i] = guns[i].modelname;
+    crosshairnames[GUN_AKIMBO] = gunnames[GUN_AKIMBO] = "akimbo";
+    crosshairnames[CROSSHAIR_DEFAULT] = "default";
+    crosshairnames[CROSSHAIR_TEAMMATE] = "teammate";
+    crosshairnames[CROSSHAIR_SCOPE] = "scope";
+    crosshairnames[CROSSHAIR_EDIT] = "edit";
+    crosshairnames[CROSSHAIR_NUM] = gunnames[NUMGUNS] = "";
+}
+
 #define AUTOSTARTPATH "config" PATHDIVS "autostart" PATHDIVS
 
 void autostartscripts(const char *prefix)
@@ -1017,14 +1028,8 @@ int main(int argc, char **argv)
 
     if(bootclientlog) cvecprintf(*bootclientlog, "######## start logging: %s\n", timestring(true));
 
-    const char *initmap = rndmapname();
-    loopi(NUMGUNS) crosshairnames[i] = gunnames[i] = guns[i].modelname;
-    crosshairnames[GUN_AKIMBO] = gunnames[GUN_AKIMBO] = "akimbo";
-    crosshairnames[CROSSHAIR_DEFAULT] = "default";
-    crosshairnames[CROSSHAIR_TEAMMATE] = "teammate";
-    crosshairnames[CROSSHAIR_SCOPE] = "scope";
-    crosshairnames[CROSSHAIR_EDIT] = "edit";
-    crosshairnames[CROSSHAIR_NUM] = gunnames[NUMGUNS] = "";
+    const char *initmap = rndmapname();     
+    loadcrosshairnames();
 
     pushscontext(IEXC_CFG);
     persistidents = false;
@@ -1119,7 +1124,7 @@ int main(int argc, char **argv)
     #define STRINGIFY_(x) #x
     #define STRINGIFY(x) STRINGIFY_(x)
     #define SDLVERSIONSTRING  STRINGIFY(SDL_MAJOR_VERSION) "." STRINGIFY(SDL_MINOR_VERSION) "." STRINGIFY(SDL_PATCHLEVEL)
-    initlog("sdl (" SDLVERSIONSTRING ")");
+    initlog("init: sdl (" SDLVERSIONSTRING ")");
     int par = 0;
 #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
@@ -1133,25 +1138,22 @@ int main(int argc, char **argv)
     if(highprocesspriority) setprocesspriority(true);
 #endif
 
-    if (!dedicated) initlog("net (" STRINGIFY(ENET_VERSION_MAJOR) "." STRINGIFY(ENET_VERSION_MINOR) "." STRINGIFY(ENET_VERSION_PATCH) ")");
+    if (!dedicated) initlog("init: net (" STRINGIFY(ENET_VERSION_MAJOR) "." STRINGIFY(ENET_VERSION_MINOR) "." STRINGIFY(ENET_VERSION_PATCH) ")");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     if (!dedicated) initclient();
         //FIXME the server executed in this way does not catch the SIGTERM or ^C
     initserver(dedicated,argc,argv);  // never returns if dedicated
 
-    initlog("world (" STRINGIFY(AC_VERSION) ")");
+    initlog("init: world (" STRINGIFY(AC_VERSION) ")");
     empty_world(7, true);
 
-    initlog("video: sdl");
+    initlog("init: video");
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
-
-#ifndef __APPLE__
+    #ifndef __APPLE__
     SDL_Surface *icon = IMG_Load("packages/misc/icon.png");
     SDL_WM_SetIcon(icon, NULL);
-#endif
-
-    initlog("video: mode");
+    #endif
     const SDL_VideoInfo *video = SDL_GetVideoInfo();
     if(video)
     {
@@ -1159,26 +1161,18 @@ int main(int argc, char **argv)
         desktoph = video->current_h;
     }
     int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
-    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
-
-    // no more TTF ATM.
-    //initlog("font");
-    //initfont();
-
-    initlog("video: misc");
-    SDL_WM_SetCaption("AssaultCube", NULL);
-
+    setupscreen(usedcolorbits, useddepthbits, usedfsaa); // no more TTF ATM. //initlog("font"); //initfont();
+    SDL_WM_SetCaption("AssaultCube: Advanced", NULL);
     keyrepeat(false);
     SDL_ShowCursor(0);
 
-    initlog("gl");
+    initlog("init: gl");
     gl_checkextensions();
     gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
-
     notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
-    initlog("console");
+    initlog("init: console");
     updateigraphs();
     autostartscripts("_veryfirst_");
     // Main font file, all other font files execute from here.
@@ -1191,10 +1185,10 @@ int main(int argc, char **argv)
 
     particleinit();
 
-    initlog("sound");
+    initlog("init: sound");
     audiomgr.initsound();
 
-    initlog("cfg");
+    initlog("init: cfg");
     extern void *scoremenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu, *downloaddemomenu;
     scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
     servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
@@ -1228,7 +1222,6 @@ int main(int argc, char **argv)
     int xmn = loadallxmaps();
     if(xmn) conoutf("loaded %d xmaps", xmn);
     persistidents = true;
-
     static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
     stream *f = opengzfile(resdata, "rb");
     if(f)
@@ -1243,7 +1236,6 @@ int main(int argc, char **argv)
         }
         delete f;
     }
-
     autostartscripts("_beforesaved_");
     initing = INIT_LOAD;
     if(!execfile("config/saved.cfg"))
@@ -1259,19 +1251,18 @@ int main(int argc, char **argv)
     initing = NOT_INITING;
     uniformtexres = !hirestextures;
 
-    initlog("models");
+    initlog("init: models");
     preload_playermodels();
     preload_hudguns();
     preload_entmodels();
 
-    initlog("docs");
+    initlog("init: docs");
     persistidents = false;
     execfile("config/docs.cfg");
     persistidents = true;
 
-    initlog("localconnect");
+    initlog("init: localconnect");
     extern string clientmap;
-
     if(initdemo)
     {
         extern int gamemode;
@@ -1280,19 +1271,17 @@ int main(int argc, char **argv)
     }
     else
     copystring(clientmap, initmap); // ac_complex for 1.0, ac_shine for 1.1, ..
-
     localconnect();
 
+    //initscript
     if(initscript) execute(initscript);
 
-    initlog("mainloop");
-
+    initlog("init: mainloop");
     inputgrab(grabinput = true);
-
     inmainloop = true;
-#ifdef _DEBUG
+    #ifdef _DEBUG
     int lastflush = 0;
-#endif
+    #endif
     if(scl.logident[0])
     { // "-Nxxx" sets the number of client log lines to xxx (after init)
         extern int clientloglinesremaining;

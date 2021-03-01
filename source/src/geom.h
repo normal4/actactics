@@ -116,10 +116,15 @@ struct ivec
     ivec(const vec &v) : x(int(v.x)), y(int(v.y)), z(int(v.z)) {}
     ivec(int a, int b, int c) : x(a), y(b), z(c) {}
 
+  
+
     vec tovec() const { return vec(x, y, z); }
 
     int &operator[](int i)       { return v[i]; }
     int  operator[](int i) const { return v[i]; }
+
+    float dot3(const vec4& o) const { return x * o.x + y * o.y + z * o.z; }
+    float dot3(const vec& o) const { return x * o.x + y * o.y + z * o.z; }
 
     bool operator==(const ivec &v) const { return x==v.x && y==v.y && z==v.z; }
     bool operator!=(const ivec &v) const { return x!=v.x || y!=v.y || z!=v.z; }
@@ -391,7 +396,4 @@ struct glmatrixf
         v[15] = 1;
     }
 };
-
-
-
 
