@@ -134,7 +134,7 @@ public:
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
     bool inwater;
-    bool onfloor, onladder, jumpnext, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping, shoot;
+    bool onfloor, onladder, jumpnext, jumpd, crouching, crouchedinair, trycrouch, cancollide, stuck, scoping, shoot;
     int lastjump;
     float lastjumpheight;
     int lastsplash;
@@ -144,7 +144,7 @@ public:
     int last_pos;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastjumpheight(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
+            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), scoping(false), shoot(false), lastjump(0), lastjumpheight(220), lastsplash(0), state(CS_ALIVE), last_pos(0)
     {
         reset();
     }
@@ -415,6 +415,18 @@ public:
 #define ROLLEFFMAX 30
 #define ROLLEFFDEF 0
 
+/*
+struct xhaircolor
+{
+    int r, g, b;
+    xhaircolor() {}
+
+    xhaircolor(int r, int g, int b) : r(r), g(g), b(b) {};
+};
+*/
+
+// to add: networked crosshairs
+
 class playerent : public dynent, public playerstate
 {
 private:
@@ -429,17 +441,18 @@ public:
     bool attacking;
     string name;
     int team;
+
     int weaponchanging;
     int nextweapon; // weapon we switch to
     int spectatemode, followplayercn;
     int eardamagemillis;
     float maxroll, maxrolleffect, movroll, effroll;  // roll added by movement and damage
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
-
+    
     weapon *weapons[NUMGUNS];
     weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
-
     poshist history; // Previous stored locations of this player
+    //xhaircolor crosshaircolor;
 
     const char *skin_noteam, *skin_cla, *skin_rvsf;
 

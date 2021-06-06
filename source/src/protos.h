@@ -475,7 +475,6 @@ enum
 extern const char *crosshairnames[];
 extern Texture *crosshairs[];
 extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
-
 // autodownload
 enum { PCK_TEXTURE = 0, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_MOD, PCK_NUM };
 extern int autodownload;
@@ -511,6 +510,7 @@ extern int renderwater(float hf, GLuint reflecttex, GLuint refracttex);
 extern void resetwater();
 
 // client
+//extern void displayinfo(const char *info = "", ...) PRINTFARGS(2, 3);
 extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void cleanupclient();

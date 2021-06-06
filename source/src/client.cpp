@@ -12,6 +12,18 @@ SVAR(curdemofile, "n/a");
 extern bool clfail, cllock;
 extern int searchlan;
 
+/*
+void displayinfo(const char *info, ...)
+{
+    glLoadIdentity();
+    const double debugfontfactor = 3 / 2.0f;
+    glOrtho(0, VIRTW * debugfontfactor, VIRTH * debugfontfactor, 0, -1, 1);
+    const int left = (VIRTW * debugfontfactor) / 2 - text_width(info) / 2;
+    const int top = (VIRTH * debugfontfactor) * 5 / 6;
+    draw_text(info, left, top);
+}
+*/
+
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
 bool multiplayer(const char *op)

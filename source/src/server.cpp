@@ -3865,7 +3865,7 @@ void checkhalftime()
             logline(ACLOG_INFO, "Half time!");
             serverpaused = 1;
             sendf(-1, 1, "ri2", SV_PAUSE, 1);
-            sendf(-1, 1, "ri2", SV_HALFTIME, 1);
+            sendf(-1, 1, "ri2", SV_HALFTIME, 2);
             switchteams(); 
             if (m_flags)
             {

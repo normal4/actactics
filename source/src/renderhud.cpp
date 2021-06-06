@@ -75,10 +75,9 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
     }
 }
 
-VARP(crosshairsize, 0, 15, 50);
+
+
 VARP(showstats, 0, 1, 2);
-VARP(crosshairfx, 0, 1, 3);
-VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
@@ -92,6 +91,23 @@ VARP(hideconsole, 0, 0, 1);
 VARP(hidespecthud, 0, 0, 1);
 VAR(showmap, 0, 0, 1);
 VARP(editinfopanelmillis, 5, 80, 2000);
+
+
+VARP(crosshairsize, 0, 2, 50);
+VARP(crosshairlength, 1, 4, 100);
+VARP(crosshairgap, 0, 4, 100);
+VARP(crosshairdot, 0, 1, 1);
+VARP(crosshairdotsize, 0, 1, 100);
+
+VARP(crosshairfx, 0, 1, 3);
+VARP(crosshairteamsign, 0, 1, 1); 
+
+//crosshaircolor, gross, but i can't be bothered redesigning AC's macro bullshit
+VARP(crosshaircolor_r, 0, 255, 255);
+VARP(crosshaircolor_g, 0, 255, 255);
+VARP(crosshaircolor_b, 0, 255, 255);
+VARP(crosshairalpha, 0, 255, 255);
+
 
 void drawscope(bool preload)
 {
@@ -185,6 +201,7 @@ void loadcrosshair(const char *type, const char *filename)
             crosshairs[CROSSHAIR_SCOPE] = loadcrosshairtexture("red_dot.png");
         }
     }
+
     else if(strchr(type, '.'))
     {   // old syntax "loadcrosshair filename type", remove this in 2020
         const char *oldcrosshairnames[CROSSHAIR_NUM + 1] = { "default", "teammate", "scope", "knife", "pistol", "carbine", "shotgun", "smg", "sniper", "ar", "cpistol", "grenades", "akimbo", "" };
@@ -209,38 +226,136 @@ void loadcrosshair(const char *type, const char *filename)
 
 COMMAND(loadcrosshair, "ss");
 
-void drawcrosshair(playerent *p, int n, color *c, float size)
+void crosshaircolor(int* r, int* g, int* b, int* a)
 {
-    Texture *crosshair = crosshairs[n];
-    if(!crosshair)
+    if ((*r > 0 && *r <= 255) && (*g > 0 && *g <= 255) && (*b > 0 && *b <= 255) && (*a > 0 && *a <= 255))
     {
-        crosshair = crosshairs[CROSSHAIR_DEFAULT];
-        if(!crosshair) crosshair = crosshairs[CROSSHAIR_DEFAULT] = loadcrosshairtexture("default.png");
+        crosshaircolor_r = *r;
+        crosshaircolor_g = *g;
+        crosshaircolor_b = *b;
+        crosshairalpha = *a;
     }
-
-    if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    else glBlendFunc(GL_ONE, GL_ONE);
-    glBindTexture(GL_TEXTURE_2D, crosshair->id);
-    glColor3ub(255,255,255);
-    if(c) glColor3f(c->r, c->g, c->b);
-    else if(crosshairfx==1 || crosshairfx==2 || n==CROSSHAIR_TEAMMATE)
+    else if ((*r <= -1 || *r >= 256) || (*g <= -1 || *g >= 256) || (*b <= -1 || *b >= 256) || (*a <= -1 || *a >= 256))
     {
-        if(n==CROSSHAIR_TEAMMATE) glColor3ub(255, 0, 0);
-        else if(!m_osok)
+        conoutf("r/g/b and transparency values must be between 0 and 255");
+        conoutf("Crosshair color values - red: %d, green: %d, blue: %d, transparency: %d", 
+            crosshaircolor_r, crosshaircolor_g, crosshaircolor_b, crosshairalpha);
+    }
+    else
+    {
+        conoutf("Crosshair color values - red: %d, green: %d, blue: %d, transparency: %d", 
+            crosshaircolor_r, crosshaircolor_g, crosshaircolor_b, crosshairalpha);
+    }
+}
+
+COMMAND(crosshaircolor, "iiii");
+VARP(crosshairvers, 0, 1, 1);
+
+void drawcrosshair(playerent* p, int n, color* c, float size)
+{
+    if (crosshairvers == 1)
+    {
+        int xgap = crosshairgap;
+        int xlength = crosshairlength;
+        GLuint crosshairtex = 0;
+        glGenTextures(1, &crosshairtex);
+        createtexture(crosshairtex, size, size, NULL, 0, true, true, GL_RGBA);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        //forgive me god
+        GLuint r = crosshaircolor_r;
+        GLuint g = crosshaircolor_g;
+        GLuint b = crosshaircolor_b;
+        GLuint a = crosshairalpha;
+
+        glColor4ub(r, g, b, a);
+
+        //east line
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - xlength - xgap, VIRTH / 2 - crosshairsize);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - xgap, VIRTH / 2 - crosshairsize);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - xlength - xgap, VIRTH / 2 + crosshairsize);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - xgap, VIRTH / 2 + crosshairsize);
+        glEnd();
+
+        //west line
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + xlength + xgap, VIRTH / 2 - crosshairsize);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + xgap, VIRTH / 2 - crosshairsize);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + xlength + xgap, VIRTH / 2 + crosshairsize);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + xgap, VIRTH / 2 + crosshairsize);
+        glEnd();
+
+
+        //south line
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - crosshairsize, VIRTH / 2 + xlength + xgap);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + crosshairsize, VIRTH / 2 + xlength + xgap);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - crosshairsize, VIRTH / 2 + xgap);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + crosshairsize, VIRTH / 2 + xgap);
+        glEnd();
+
+        //north line
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - crosshairsize, VIRTH / 2 - xgap);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + crosshairsize, VIRTH / 2 - xgap);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - crosshairsize, VIRTH / 2 - xlength - xgap);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + crosshairsize, VIRTH / 2 - xlength - xgap);
+        glEnd();
+
+        if (crosshairdot)
         {
-            if(p->health<=25) glColor3ub(255,0,0);
-            else if(p->health<=50) glColor3ub(255,128,0);
+            glBegin(GL_TRIANGLE_STRIP);
+            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - crosshairdotsize, VIRTH / 2 - crosshairdotsize);
+            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + crosshairdotsize, VIRTH / 2 - crosshairdotsize);
+            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - crosshairdotsize, VIRTH / 2 + crosshairdotsize);
+            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + crosshairdotsize, VIRTH / 2 + crosshairdotsize);
+            glEnd();
         }
     }
-    float s = size>0 ? size : (float)crosshairsize;
-    float chsize = s * ((p == player1 && p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3) && (crosshairfx==1 || crosshairfx==3) ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
-    glBegin(GL_TRIANGLE_STRIP);
-    glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
-    glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
-    glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
-    glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
-    glEnd();
+    
+    // old crosshairs/custom crosshairs
+    else if (crosshairvers == 0)
+    {
+        Texture* crosshair = crosshairs[n];
+        if (!crosshair)
+        {
+            crosshair = crosshairs[CROSSHAIR_DEFAULT];
+            if (!crosshair) crosshair = crosshairs[CROSSHAIR_DEFAULT] = loadcrosshairtexture("default.png");
+        }
+
+        if (crosshair->bpp == 32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        else
+        {
+            glBlendFunc(GL_ONE, GL_ONE);
+        }
+        glBindTexture(GL_TEXTURE_2D, crosshair->id);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glColor3ub(255, 255, 255);
+        if (c) glColor3f(c->r, c->g, c->b);
+        else if (crosshairfx == 1 || crosshairfx == 2 || n == CROSSHAIR_TEAMMATE)
+        {
+            if (n == CROSSHAIR_TEAMMATE) glColor3ub(255, 0, 0);
+            else if (!m_osok)
+            {
+                if (p->health <= 25) glColor3ub(255, 0, 0);
+                else if (p->health <= 50) glColor3ub(255, 128, 0);
+            }
+        }
+
+        float s = size > 0 ? size : (float)crosshairsize;
+        float chsize = s * ((p == player1 && p->weaponsel->type == GUN_ASSAULT && p->weaponsel->shots > 3) && (crosshairfx == 1 || crosshairfx == 3) ? 1.4f : 1.0f) * (n == CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 - chsize);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 - chsize);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - chsize, VIRTH / 2 + chsize);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + chsize, VIRTH / 2 + chsize);
+        glEnd();
+    }
 }
+
 
 VARP(hidedamageindicator, 0, 0, 1);
 VARP(damageindicatorsize, 0, 200, 10000);

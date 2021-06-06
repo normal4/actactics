@@ -1433,13 +1433,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p, bool demo = false)
             {
                 clienthalftime = getint(p);
                 
-                if (clienthalftime == 1)
+                if (!intermission)
                 {
-                    hudoutf("\f2Half time!");
-                }
-                else if (clienthalftime == 0)
-                {
-                    hudoutf("\f2Next half starting.. fight!"); 
+                    if (clienthalftime == 1)
+                    {
+                        hudoutf("\f2Half time!");
+                    }
+                    else if (clienthalftime == 2)
+                    {
+                        hudoutf("\f2Next half starting ...");
+                    }
                 }
                 break; 
             }
