@@ -58,7 +58,7 @@
         #include "AL/al.h"
         #include "AL/alc.h"
         #include "vorbis/vorbisfile.h"
-        #define MOD_KEYS_CTRL (KMOD_LCTRL|KMOD_RCTRL)
+        #define MOD_KEYS_CTRL (KMOD_LGUI|KMOD_RGUI)
     #endif
 
     #include <setjmp.h>

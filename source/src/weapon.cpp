@@ -847,13 +847,13 @@ void raydamage(vec &from, vec &to, playerent *d)
         switch(d->weaponsel->type)
         {
             case GUN_KNIFE: gib = true; break;
-            case GUN_SNIPER: if(d==player1 && hitzone==HIT_HEAD) { dam *= 3; gib = true; }; break;
-            //case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.18; gib = true; }; break;
+            case GUN_SNIPER: if(d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = true; }; break;
+            case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = false; }; break;
             //case GUN_AKIMBO: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
-            //case GUN_SUBGUN: if (d==player1 && hitzone==HIT_HEAD) { dam *= 2.15; gib = true; }; break;
+            case GUN_SUBGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = false; }; break;
             //case GUN_SHOTGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
             case GUN_CARBINE: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; }; break;
-            //case GUN_PISTOL: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.5; gib = true; }; break;
+            case GUN_PISTOL: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = false; }; break;
             default: break;
         }
         bool info = gib;
@@ -1483,16 +1483,9 @@ subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 int subgun::dynspread() { 
     
-    /*
-    if (shots == 1) return 10;
-    else if (shots > 1 && shots <= 3) return 45;
-    else if (shots > 5 && shots <= 12) return 70;
-    else if (shots > 12) return 120;
-
-    return shots > 2 ? 120 : 1;
-    **/
-
-    return shots > 3 ? 80 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); 
+    if (shots == 2) return 0;
+    //return shots > 2 ? 120 : 1;
+    return shots > 2 ? 60 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); 
 } // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
 
 // sniperrifle
@@ -1571,13 +1564,9 @@ bool carbine::selectable() { return weapon::selectable() && !m_noprimary && this
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
 int assaultrifle::dynspread() {
-    if (shots == 1) return 1;
-    else if (shots == 2) return 23;
-    else if (shots == 3 || shots == 4) return 40;
-    else if (shots >= 5) return 80;
-    else return 0; 
-    //return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); 
-    //return shots > 3 ? 55 : 1;
+    if (shots == 1 || 2) return 0;
+    return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); 
+    return shots > 3 ? 55 : 1;
     }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }

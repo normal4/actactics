@@ -18,6 +18,8 @@
  #include "console.h"
  enum
  {
+   SDL_AC_BUTTON_WHEELLEFT = -7,
+   SDL_AC_BUTTON_WHEELRIGHT = -6,
    SDL_AC_BUTTON_WHEELDOWN = -5,
    SDL_AC_BUTTON_WHEELUP = -4,
    SDL_AC_BUTTON_RIGHT = -3,
@@ -56,7 +58,7 @@ extern int hwtexsize, hwmaxaniso;
 extern int maploaded, msctrl;
 extern float waterlevel;
 extern bool clientpaused;
-extern bool clienthalftime;
+extern uchar clienthalftime;
 
 #define AC_VERSION 1901
 #define AC_MASTER_URI "127.0.0.1"
