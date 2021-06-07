@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-#define LIGHTSCALE 4
+VAR(lightscale, 1, 4, 100);
 
 void lightray(float bx, float by, const persistent_entity &light, float fade = 1, bool flicker = false)     // done in realtime, needs to be fast
 {
@@ -26,8 +26,8 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
 
     if(maxtmus)
     {
-        l /= LIGHTSCALE;
-        stepl /= LIGHTSCALE;
+        l /= lightscale;
+        stepl /= lightscale;
 
         if(light.attr3 || light.attr4)      // coloured light version, special case because most lights are white
         {
@@ -44,10 +44,10 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
             int stepg = (int)(g/(float)steps);
             int b = light.attr4*fadescale;
             int stepb = (int)(b/(float)steps);
-            g /= LIGHTSCALE;
-            stepg /= LIGHTSCALE;
-            b /= LIGHTSCALE;
-            stepb /= LIGHTSCALE;
+            g /= lightscale;
+            stepg /= lightscale;
+            b /= lightscale;
+            stepb /= lightscale;
             loopi(steps)
             {
                 sqr *s = S(x>>PRECBITS, y>>PRECBITS);

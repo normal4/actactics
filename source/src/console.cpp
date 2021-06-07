@@ -305,7 +305,6 @@ void saycommand(char *init)                         // turns input to the comman
     saycommandon = (init!=NULL);
     setscope(false);
     setburst(false);
-    if(!editmode) keyrepeat = saycommandon;
     copystring(cmdline.buf, init ? escapestring(init, false, true) : "");
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
@@ -542,7 +541,11 @@ void consolekey(int code, bool isdown, SDL_Keymod mod)
             if(h)
             {
                 h->run();
-                if(h->action && !storeinputcommand) history.drop();
+                if (h->action && !storeinputcommand)
+                {
+                    delete h;
+                    history.drop();
+                }
             }
         }
         else if((code==SDLK_ESCAPE && !ignoreescup) || code== SDL_AC_BUTTON_RIGHT)

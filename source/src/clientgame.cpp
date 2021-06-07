@@ -1801,7 +1801,12 @@ void spectatemode(int mode)
         }
         case SM_FLY:
         {
-            if(player1->spectatemode != SM_FLY)
+            if (player1->team != TEAM_SPECT)
+            {
+                mode = mode_previous;
+                conoutf("Fly mode not permitted unless spectating");
+            }
+            else if(player1->spectatemode != SM_FLY)
             {
                 playerent *f = getclient(player1->followplayercn);
                 if(f)
