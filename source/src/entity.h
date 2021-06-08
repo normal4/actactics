@@ -408,7 +408,7 @@ public:
 };
 
 #ifndef STANDALONE
-#define HEADSIZE 0.4f
+#define HEADSIZE 0.44f
 
 #define ROLLMOVMAX 20
 #define ROLLMOVDEF 0
@@ -474,7 +474,7 @@ public:
         name[0] = 0;
         maxeyeheight = 4.5f;
         aboveeye = 0.7f;
-        radius = 1.1f;
+        radius = 1.0f;
         maxspeed = 16.0f;
         skin_noteam = skin_cla = skin_rvsf = NULL;
         loopi(2) nextskin[i] = 0;

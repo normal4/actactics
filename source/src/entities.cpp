@@ -22,6 +22,8 @@ void renderent(entity &e)
     rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor + float(e.attr1) / ENTSCALE10), 0, yaw, 0);
 }
 
+
+
 void renderclip(int type, int x, int y, float xs, float ys, float h, float elev, float tilt, int shape)
 {
     if(xs < 0.05f) xs = 0.05f;

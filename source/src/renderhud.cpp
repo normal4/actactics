@@ -14,13 +14,15 @@ inline void turn_on_transparency(int alpha = 255)
     glColor4ub(255, 255, 255, alpha);
 }
 
+VARP(icontransparency, 10, 180, 255);
+
 void drawequipicon(float x, float y, int col, int row)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/items.png", 3);
     if(tex)
     {
-        turn_on_transparency();
+        turn_on_transparency(icontransparency);
         drawicon(tex, x, y, 120, col, row, 1/4.0f);
         glDisable(GL_BLEND);
     }
@@ -81,7 +83,7 @@ VARP(showstats, 0, 1, 2);
 VARP(hideradar, 0, 0, 1);
 VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
-VARP(hideteamscorehud, 0, 0, 1);
+VARP(hideteamscorehud, 0, 1, 1);
 VARP(flagscorehudtransparency, 0, 2, 2);
 VARP(hideeditinfopanel, 0, 0, 1);
 VARP(hidevote, 0, 0, 2);
@@ -251,12 +253,13 @@ void crosshaircolor(int* r, int* g, int* b, int* a)
 COMMAND(crosshaircolor, "iiii");
 VARP(crosshairvers, 0, 1, 1);
 
-void drawcrosshair(playerent* p, int n, color* c, float size)
+void drawcrosshair(playerent* p, int n, color* c, float size, int type)
 {
-    if (crosshairvers == 1)
+    if (crosshairvers == 0 || type == 0)
     {
         int xgap = crosshairgap;
         int xlength = crosshairlength;
+
         GLuint crosshairtex = 0;
         glGenTextures(1, &crosshairtex);
         createtexture(crosshairtex, size, size, NULL, 0, true, true, GL_RGBA);
@@ -316,7 +319,7 @@ void drawcrosshair(playerent* p, int n, color* c, float size)
     }
     
     // old crosshairs/custom crosshairs
-    else if (crosshairvers == 0)
+    else 
     {
         Texture* crosshair = crosshairs[n];
         if (!crosshair)
@@ -447,16 +450,16 @@ void drawequipicons(playerent *p)
     glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
 
     // health & armor
-    if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1650, (p->armour-1)/25, 2);
-    drawequipicon(HUDPOS_HEALTH*2, 1650, 2, 3);
-    if(p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25)*2 : HUDPOS_GRENADE*2, 1650, 3, 1);
+    if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1660, (p->armour-1)/25, 2);
+    drawequipicon(HUDPOS_HEALTH*2, 1660, 2, 3);
+    if (p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25) * 2 : HUDPOS_GRENADE, 1650, 3, 1);
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
     if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
-    if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON*2, 1650, c, r);
+    if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON, 1650, c, r);
     glEnable(GL_BLEND);
 }
 
@@ -518,6 +521,7 @@ struct hudmessages : consolebuffer<hudline>
     }
     void render()
     {
+        /**/
         if(!conlines.length()) return;
         glPushMatrix();
         glLoadIdentity();
@@ -892,6 +896,9 @@ VARP(dbgpos,0,0,1);
 VARP(showtargetname,0,1,1);
 VARP(showspeed, 0, 0, 1);
 VAR(blankouthud, 0, 0, 10000); //for "clean" screenshot
+VARP(statstyle, 0, 0, 1);
+const int hudelescale = 3;
+
 string gtime;
 string ghttime;
 int dimeditinfopanel = 255;
@@ -975,13 +982,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glMatrixMode(GL_PROJECTION);
     }
 
+
     char *infostr = editinfo();
     int commandh = HUDPOS_Y_BOTTOMLEFT + FONTH;
     if(command) commandh -= rendercommand(-1, HUDPOS_Y_BOTTOMLEFT, VIRTW - FONTH); // dryrun to get height
     else if(infostr) draw_text(infostr, HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
     else if(targetplayer && showtargetname) draw_text(colorname(targetplayer), HUDPOS_X_BOTTOMLEFT, HUDPOS_Y_BOTTOMLEFT);
     glLoadIdentity();
-    glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
+    glPushMatrix();
+    glOrtho(0, VIRTW * (hudelescale-0.5), VIRTH * (hudelescale-0.5), 0, -1, 1);
     extern void r_accuracy(int h);
     extern void *scoremenu;
     extern gmenu *curmenu;
@@ -995,6 +1004,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     //wallclockformat beginning with "U" shows UTC/GMT time
     if(wallclock) filtertext(ltime, timestring(*ltimeformat != 'U', ltimeformat + int(*ltimeformat == 'U')), FTXT_TOLOWER);
 
+
     if(showstats)
     {
         if(showstats==2 && !dbgpos)
@@ -1002,11 +1012,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2, ttll = VIRTW*2 - 3*FONTH/2, lf = lod_factor();
             blendbox(left - 24, top - 24, VIRTW*2 - 72, VIRTH*2 - 48, true, -1);
 
-            draw_text("fps", left - (text_width("fps") + FONTH/2), top);
-            draw_text("lod", left - (text_width("lod") + FONTH/2), top + 80);
-            draw_text("wqd", left - (text_width("wqd") + FONTH/2), top + 160);
-            draw_text("wvt", left - (text_width("wvt") + FONTH/2), top + 240);
-            draw_text("evt", left - (text_width("evt") + FONTH/2), top + 320);
+            draw_text("fps", left - (text_width("fps") + FONTH / 2), top);
+            draw_text("lod", left - (text_width("lod") + FONTH / 2), top + 80);
+            draw_text("wqd", left - (text_width("wqd") + FONTH / 2), top + 160);
+            draw_text("wvt", left - (text_width("wvt") + FONTH / 2), top + 240);
+            draw_text("evt", left - (text_width("evt") + FONTH / 2), top + 320);
 
             formatstring(text)("\f%c%d", rangecolor(curfps, "xwvu", 30, 100, 150), curfps);             draw_text(text, ttll - text_width(text), top);
             formatstring(text)("\f%c%d", rangecolor(lf, "uvwx", 199, 299, 399), lf);                    draw_text(text, ttll - text_width(text), top + 80);
@@ -1015,7 +1025,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             formatstring(text)("\f%c%d", rangecolor(xtraverts, "uvwx", 3999, 5999, 7999), xtraverts);   draw_text(text, ttll - text_width(text), top + 320);
 
             if(wallclock) draw_text(ltime, ttll - text_width(ltime), top - 90);
-            if(unsavededits) draw_text("U", ttll - text_width("U"), top - 90 - (wallclock ? 2*FONTH/2 : 0));
+            //i am triggered by this 'feature'
+            //if(unsavededits) draw_text("Unsaved edits", ttll - text_width("Unsaved edits"), top - 90 - (wallclock ? 2*FONTH/2 : 0));
         }
         else
         {
@@ -1029,14 +1040,22 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 formatstring(text)("%05.2f Z  ", p->o.z);     draw_text(text, VIRTW*2 - ( text_width(text) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 popfont();
             }
-            defformatstring(c_val)("fps %d", curfps);         draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
+            //defformatstring(c_val)("fps %d", curfps);         draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
+            //if(wallclock) draw_text(ltime, VIRTW*2 -( text_width(ltime) - FONTH + 300), VIRTH*2 - 3*FONTH/2);
+            //if(unsavededits) draw_text("Unsaved edits", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - (wallclock ? 7 : 5)*FONTH/2);
 
-            if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 5*FONTH/2);
-            if(unsavededits) draw_text("U", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - (wallclock ? 7 : 5)*FONTH/2);
+            defformatstring(c_val)("\f4Client FPS: \f0%d", curfps);         draw_text(c_val, FONTH/1.5, FONTH/2);
+            //if(wallclock)                                     draw_text(ltime, text_width(ltime) + 1000, FONTH/2);
+
+            blendbox(FONTH/2, FONTH * 1.5, text_width(c_val) + FONTH, FONTH / 3, false); //lol
+            //blendbox(FONTH/3 + 1000, FONTH * 1.5, text_width(ltime) + 100, FONTH / 3, false);
         }
     }
     else if(wallclock) draw_text(ltime, VIRTW*2 - text_width(ltime) - FONTH, VIRTH*2 - 3*FONTH/2);
+    glPopMatrix();
 
+    glLoadIdentity();
+    glOrtho(0, VIRTW*2.0, VIRTH*2.0, 0, -1, 1);
     if(editmode && !hideeditinfopanel)
     {
         static int lasteditip = 0;
@@ -1166,23 +1185,27 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
     }
 
+    // bosnia wizard magic
+
     if(p->state == CS_ALIVE || (p->state == CS_DEAD && p->spectatemode == SM_DEATHCAM))
     {
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
+        glScalef(0.5, 0.5, 1.0f);
 
         if(p->state == CS_ALIVE && !hidehudequipment)
         {
             pushfont("huddigits");
-            draw_textf("%d", HUDPOS_HEALTH + HUDPOS_NUMBERSPACING, 823, p->health);
-            if(p->armour) draw_textf("%d", HUDPOS_ARMOUR + HUDPOS_NUMBERSPACING, 823, p->armour);
+            draw_textf("%d", HUDPOS_HEALTH + HUDPOS_NUMBERSPACING, HUDPOS_ARBITRARY_NUMBER*2, p->health);
+            if(p->armour) draw_textf("%d", HUDPOS_ARMOUR + HUDPOS_NUMBERSPACING + 150, HUDPOS_ARBITRARY_NUMBER*2, p->armour);
             if(p->weaponsel && valid_weapon(p->weaponsel->type))
             {
                 glMatrixMode(GL_MODELVIEW);
-                if (p->weaponsel->type!=GUN_GRENADE) p->weaponsel->renderstats();
-                else if (p->prevweaponsel->type==GUN_AKIMBO || p->prevweaponsel->type==GUN_PISTOL) p->weapons[p->akimbo ? GUN_AKIMBO : GUN_PISTOL]->renderstats();
+                if(p->weaponsel->type != GUN_GRENADE) p->weaponsel->renderstats();
+                else if (p->prevweaponsel->type == GUN_AKIMBO || p->prevweaponsel->type == GUN_PISTOL) p->weapons[p->akimbo ? GUN_AKIMBO : GUN_PISTOL]->renderstats();
                 else p->weapons[getprevweaponsel(p)]->renderstats();
-                if(p->mag[GUN_GRENADE]) p->weapons[GUN_GRENADE]->renderstats();
+                if (p->mag[GUN_GRENADE]) p->weapons[GUN_GRENADE]->renderstats();
+
                 glMatrixMode(GL_PROJECTION);
             }
             popfont();
@@ -1194,9 +1217,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
             turn_on_transparency(255);
-            int scores[4], offs = m_flags ? 0 : 2;
+            int scores[4], offs = m_flags? 0 : 2;
             calcteamscores(scores);
-            const char *cc = scores[offs] > 99 || scores[offs + 1] > 99 ? "31" : "55";
+            const char* cc = scores[offs] > 99 || scores[offs + 1] > 99 ? "31" : "55";
 
             if(!offs || scores[2] || scores[3]) loopi(2) // flag state or frag-counter
             {

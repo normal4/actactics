@@ -4,6 +4,8 @@
 
 #define CONSPAD (FONTH/3)
 
+
+
 VARP(altconsize, 0, 0, 100);
 VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
@@ -35,11 +37,12 @@ struct console : consolebuffer<cline>
 
     void render()
     {
-        int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3;
+        int conwidth = ((fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3)/1.5;
         int h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
         int conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
 
-        if(fullconsole) blendbox(CONSPAD, CONSPAD, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/3, true);
+        color borderc(255, 255, 255);
+        if(fullconsole) blendbox(CONSPAD, CONSPAD+FONTH*1.5, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/1.75, true, -1, NULL, &borderc);
 
         int numl = conlines.length(), offset = min(conskip, numl);
 
@@ -69,7 +72,8 @@ struct console : consolebuffer<cline>
         {
             int idx = offset + numl-i-1;
             char *line = conlines[idx].line;
-            draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, fullconsole ? 0xFF : conalpha, -1, conwidth);
+            
+            draw_text(line, CONSPAD+FONTH/3, y+FONTH*1.5, 0xFF, 0xFF, 0xFF, fullconsole ? 0xFF : conalpha, -1, conwidth);
             int width, height;
             text_bounds(line, width, height, conwidth);
             y += height;
@@ -141,14 +145,15 @@ int rendercommand(int x, int y, int w)
 
 // keymap is defined externally in keymap.cfg
 
-vector<keym> keyms;
+hashtable<int, keym> keyms(256);
 
 const char *keycmds[keym::NUMACTIONS] = { "bind", "editbind", "specbind" };
 inline const char *keycmd(int type) { return type >= 0 && type < keym::NUMACTIONS ? keycmds[type] : ""; }
 
 void keymap(int *code, char *key)
 {
-    keym &km = keyms.add();
+    if (findbindc(*code)) { clientlogf("keymap: double assignment for code %d ignored", *code); return; }
+    keym& km = keyms[*code];
     km.code = *code;
     km.name = newstring(key);
 }
@@ -157,51 +162,64 @@ COMMAND(keymap, "is");
 
 keym *findbind(const char *key)
 {
-    loopv(keyms) if(!strcasecmp(keyms[i].name, key)) return &keyms[i];
+    enumerate(keyms, keym, km, if (!strcasecmp(km.name, key)) return &km;);
     return NULL;
+}
+
+keym* autokeymap(int keycode, int scancode)
+{
+    static bool scdone[SDL_NUM_SCANCODES] = { false };
+    int sc = keycode <= SDLK_SCANCODE_MASK ? scancode : (keycode & (SDLK_SCANCODE_MASK - 1));
+    if (sc < 0 || sc >= SDL_NUM_SCANCODES || scdone[sc]) return NULL;
+    scdone[sc] = true;
+    string text;
+    filtertext(text, SDL_GetScancodeName((SDL_Scancode)sc), FTXT__AUTOKEYMAPNAME);
+    if (!*text || (int)SDL_GetScancodeFromName(text) != sc || findbind(text)) return NULL; // name is not unique (collision probably caused by filtertext) or can't be properly resolved in reverse
+    clientlogf("autokeymap: create keymap entry for scancode %d, \"%s\"", sc, text);
+    sc |= SDLK_SCANCODE_MASK;
+    keymap(&sc, text);
+    return keyms.access(sc);
 }
 
 keym **findbinda(const char *action, int type)
 {
     static vector<keym *> res;
     res.setsize(0);
-    loopv(keyms) if(!strcasecmp(keyms[i].actions[type], action)) res.add(&keyms[i]);
+    enumerate(keyms, keym, km, if (!strcasecmp(km.actions[type], action)) res.add(&km););
     res.add(NULL);
     return res.getbuf();
 }
 
 keym *findbindc(int code)
 {
-    loopv(keyms) if(keyms[i].code==code) return &keyms[i];
-    return NULL;
+    return keyms.access(code);
 }
 
 void findkey(int *code)
 {
     const char *res = "-255";
-    loopv(keyms)
-    {
-        if(keyms[i].code == *code)
+    enumerate(keyms, keym, km, 
+        if (km.code == *code) 
         {
-            res = keyms[i].name;
+            res = km.name;
             break;
         }
-    }
+    );
     result(res);
 }
+
 COMMAND(findkey, "i");
 
 void findkeycode(const char* s)
 {
     int res = -255;
-    loopv(keyms)
-    {
+    enumerate(keyms, keym, km,
         if(!strcmp(s, keyms[i].name))
         {
-            res = keyms[i].code;
+            res = km.code;
             break;
         }
-    }
+    );
     intret(res);
 }
 COMMAND(findkeycode, "s");
@@ -213,7 +231,7 @@ char *keyaction = NULL;
 
 VAR(_defaultbinds, 0, 0, 1);
 
-COMMANDF(_resetallbinds, "", () { if(_defaultbinds) loopv(keyms) loopj(keym::NUMACTIONS) bindkey(&keyms[i], "", j); });
+COMMANDF(_resetallbinds, "", () { if (_defaultbinds) enumerate(keyms, keym, km, loopj(keym::NUMACTIONS) bindkey(&km, "", j);); });
 
 bool bindkey(keym *km, const char *action, int type)
 {
@@ -230,8 +248,22 @@ bool bindkey(keym *km, const char *action, int type)
 void bindk(const char *key, const char *action, int type)
 {
     keym *km = findbind(key);
+    if (!km)
+    {
+        string text;
+        filtertext(text, key, FTXT__AUTOKEYMAPNAME);
+        int sc = *text && !strcmp(key, text) ? (int)SDL_GetScancodeFromName(text) : SDL_SCANCODE_UNKNOWN;
+        if (sc != SDL_SCANCODE_UNKNOWN)
+        {
+            clientlogf("autokeymap: re-create keymap entry for scancode %d, \"%s\"", sc, text);
+            sc |= SDLK_SCANCODE_MASK;
+            keymap(&sc, text);
+            km = findbind(key);
+        }
+    }
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
     bindkey(km, action, type);
+
 }
 
 void keybind(const char *key, int type)
@@ -254,14 +286,14 @@ void searchbinds(const char *action, int type)
     if(!action || !action[0]) return;
     if(type < keym::ACTION_DEFAULT || type >= keym::NUMACTIONS) { conoutf("invalid bind type \"%d\"", type); return; }
     vector<char> names;
-    loopv(keyms)
-    {
-        if(!strcmp(keyms[i].actions[type], action))
+
+    enumerate(keyms, keym, km,
+        if (!strcmp(km.actions[type], action))
         {
-            if(names.length()) names.add(' ');
-            names.put(keyms[i].name, strlen(keyms[i].name));
+            if (names.length()) names.add(' ');
+            names.put(km.name, strlen(km.name));
         }
-    }
+    );
     resultcharvector(names, 0);
 }
 
@@ -302,7 +334,9 @@ COMMAND(onrelease, "s");
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
-    saycommandon = (init!=NULL);
+    saycommandon = (init != NULL);
+    textinput(saycommandon, TI_CONSOLE);
+    keyrepeat(saycommandon, KR_CONSOLE);
     setscope(false);
     setburst(false);
     copystring(cmdline.buf, init ? escapestring(init, false, true) : "");
@@ -556,7 +590,7 @@ void consolekey(int code, bool isdown, SDL_Keymod mod)
     }
 }
 
-void textinput(const char* text)
+void processtextinput(const char* text)
 {
     if (saycommandon)
     {
@@ -569,18 +603,19 @@ void textinput(const char* text)
     }
 }
 
-void keypress(int code, bool isdown, SDL_Keymod mod)
+void keypress(int keycode, int scancode, bool isdown, SDL_Keymod mod)
 {
-    keym *haskey = NULL;
-    loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
-    if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
-    else if (saycommandon) consolekey(code, isdown, mod); // keystrokes go to commandline
-    else if (!menukey(code, isdown)) // keystrokes go to menu
+    keym* haskey = keyms.access(keycode);
+    if (!haskey && !(keycode & SDLK_SCANCODE_MASK) && scancode) haskey = keyms.access(scancode | SDLK_SCANCODE_MASK); // keycode not found: maybe we know the scancode
+    if (haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
+    else if (saycommandon) consolekey(keycode, isdown, mod); // keystrokes go to commandline
+    else if (!menukey(keycode, isdown)) // keystrokes go to menu
     {
-        if(haskey) execbind(*haskey, isdown);
+        if (haskey) execbind(*haskey, isdown);
     }
-    if(isdown) exechook(HOOK_SP, "KEYPRESS", "KEYPRESS %d", code);
-    else exechook(HOOK_SP, "KEYRELEASE", "%d", code);
+    if (keycode & SDLK_SCANCODE_MASK) scancode = keycode & ~SDLK_SCANCODE_MASK;
+    if (isdown) exechook(HOOK_SP, "KEYPRESS", "KEYPRESS %d %d", keycode, scancode);
+    else exechook(HOOK_SP, "KEYRELEASE", "%d %d", keycode, scancode);
 }
 
 char *getcurcommand(int *pos)
@@ -593,12 +628,10 @@ VARP(omitunchangeddefaultbinds, 0, 1, 2);
 
 void writebinds(stream *f)
 {
-    loopv(keyms)
-    {
-        keym *km = &keyms[i];
-        loopj(3) if(*km->actions[j] && (!km->unchangeddefault[j] || omitunchangeddefaultbinds < 2))
-            f->printf("%s%s \"%s\" %s\n", km->unchangeddefault[j] && omitunchangeddefaultbinds ? "//" : "", keycmd(j), km->name, escapestring(km->actions[j]));
-    }
+    enumerate(keyms, keym, km,
+        loopj(3) if (*km.actions[j] && (!km.unchangeddefault[j] || omitunchangeddefaultbinds < 2))
+        f->printf("%s%s \"%s\" %s\n", km.unchangeddefault[j] && omitunchangeddefaultbinds ? "//" : "", keycmd(j), km.name, escapestring(km.actions[j]));
+    );
 }
 
 bool textinputbuffer::say(const char* c)
@@ -786,6 +819,8 @@ void writekeymap() // create keymap.cfg with proper constants from SDL2 header f
         { 252, "UE" },
         { 246, "OE" },
         { 228, "AE" },
+        { SDL_SCANCODE_GRAVE | SDLK_SCANCODE_MASK, "LEFTOF1" }, // may not produce a proper keycode if the layout has dead keys
+        { SDL_SCANCODE_EQUALS | SDLK_SCANCODE_MASK, "LEFTOFDEL" },
         { -1, " " }, // keys below are commented out by default
         { SDLK_PERCENT, "PERCENT" },
         { SDLK_POWER, "POWER" },
@@ -904,7 +939,7 @@ void writekeymap() // create keymap.cfg with proper constants from SDL2 header f
         for (int i = 0; keymaptab[i].keycode; i++)
         {
             if (keymaptab[i].keyname[0] == ' ') c = "//";
-            else f->printf(keymaptab[i].keycode < (1 << 30) ? "%skeymap %d %s\n" : "%skeymap (sc %d) %s\n", c, keymaptab[i].keycode& (keymaptab[i].keycode > 0 ? ((1 << 30) - 1) : -1), keymaptab[i].keyname);
+            else f->printf(keymaptab[i].keycode < SDLK_SCANCODE_MASK ? "%skeymap %d %s\n" : "%skeymap (sc %d) %s\n", c, keymaptab[i].keycode& (keymaptab[i].keycode > 0 ? (SDLK_SCANCODE_MASK - 1) : -1), keymaptab[i].keyname);
         }
         f->printf("\npop sc\nexec config/resetbinds.cfg\n");
         delete f;

@@ -987,15 +987,17 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     else if(!d->move && !d->strafe)                 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
     else                                            { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
     if(d->move < 0)                                 { anim |= ANIM_REVERSE; }
+
     modelattach a[3];
     int numattach = 0;
+    
     if(vwepname)
     {
         a[numattach].name = vwepname;
         a[numattach].tag = "tag_weapon";
         numattach++;
     }
-
+    
     if(!stenciling && !reflecting && !refracting)
     {
         if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction < d->weaponsel->flashtime())
@@ -1005,7 +1007,9 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
             d->head = vec(-1, -1, -1);
             a[numattach].tag = "tag_head";
             a[numattach].pos = &d->head;
+
             numattach++;
+
         }
     }
     if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT)
@@ -1013,6 +1017,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         anim |= ANIM_TRANSLUCENT; // see through followed player
         if(stenciling) return;
     }
+
     rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, 0, d->yaw+90, d->pitch/4, speed, basetime, d, a);
     if(!stenciling && !reflecting && !refracting)
     {

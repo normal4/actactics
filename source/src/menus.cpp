@@ -14,8 +14,7 @@ COMMANDF(curmenu, "", () {result(curmenu ? curmenu->name : "");} );
 inline gmenu *setcurmenu(gmenu *newcurmenu)      // only change curmenu through here!
 {
     curmenu = newcurmenu;
-    extern bool saycommandon;
-    if(!editmode && !saycommandon) keyrepeat = curmenu && curmenu->allowinput && !curmenu->hotkeys;
+    keyrepeat(curmenu && curmenu->allowinput && !curmenu->hotkeys, KR_MENU);
     return curmenu;
 }
 
@@ -380,7 +379,6 @@ struct mitemmapload : mitemmanual
 
 // text input item
 
-bool menutextinputon = false;
 
 struct mitemtextinput : mitemtext
 {
@@ -439,7 +437,7 @@ struct mitemtextinput : mitemtext
     virtual void focus(bool on)
     {
         if(on && hoveraction) execute(hoveraction);
-        menutextinputon = on;
+        textinput(on, TI_MENU);
 
         if(action && !on && modified && parent->items.find(this) != parent->items.length() - 1)
         {
@@ -1101,7 +1099,7 @@ static bool iskeypressed(int key)
 /// Check if the currently selected menu item is a text field
 void menusay(const char* text)
 {
-    if (menutextinputon && curmenu && curmenu->allowinput && curmenu->items.inrange(curmenu->menusel)) curmenu->items[curmenu->menusel]->say(text);
+    if(curmenu && curmenu->allowinput && curmenu->items.inrange(curmenu->menusel)) curmenu->items[curmenu->menusel]->say(text);
 }
 
 bool menukey(int code, bool isdown, SDL_Keymod mod)
@@ -1499,8 +1497,9 @@ void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/menu.jpg");
-    static color transparent(1, 1, 1, 0.75f);
-    blendbox(x1, y1, x2, y2, border, tex->id, allowinput ? NULL : &transparent);
+    static color transparent(1, 1, 1, 0.65f);
+    color borderc(255, 150, 1);
+    blendbox(x1, y1, x2, y2, border, tex->id, &transparent, &borderc);
 }
 
 // apply changes menu

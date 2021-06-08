@@ -125,7 +125,7 @@ void gl_checkextensions()
 #endif
 }
 
-void gl_init(int w, int h, int bpp, int depth, int fsaa)
+void gl_init(int w, int h, int depth, int fsaa)
 {
     //#define fogvalues 0.5f, 0.6f, 0.7f, 1.0f
 
@@ -246,6 +246,28 @@ void box2d(int x1, int y1, int x2, int y2, int gray)
     glEnd();
 }
 
+
+void box2d_color(int x1, int y1, int x2, int y2, color *c, int a, float size)
+{
+    GLuint bordertex = 0;
+    glGenTextures(1, &bordertex);
+    createtexture(bordertex, size, size, NULL, 3, false,false, GL_RGBA);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glLineWidth(1.0);
+
+
+    glColor4ub(c->r,c->g,c->b,a);
+
+    glBegin(GL_LINE_LOOP);
+    glTexCoord2f(0, 0); glVertex2f(x1, y1);
+    glTexCoord2f(0, 1); glVertex2f(x2, y1);
+    glTexCoord2f(1, 0); glVertex2f(x2, y2);
+    glTexCoord2f(1, 1); glVertex2f(x1, y2);
+    glEnd();
+}
+
 void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy)
 {
     if(!tsy) tsy = tsx;
@@ -300,7 +322,7 @@ void dot(int x, int y, float z)
     xtraverts += 4;
 }
 
-void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
+void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c, color *cborder)
 {
     glDepthMask(GL_FALSE);
     if(tex>=0)
@@ -378,12 +400,10 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
         xtraverts += 4;
     }
 
-    if(border)
+    if(cborder)
     {
-        glDisable(GL_BLEND);
         if(tex>=0) glDisable(GL_TEXTURE_2D);
-        box2d(x1, y1, x2, y2, 155);
-        glEnable(GL_BLEND);
+        box2d_color(x1, y1, x2, y2, cborder, 150, 1);
     }
 
     if(tex<0 || border) glEnable(GL_TEXTURE_2D);

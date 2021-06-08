@@ -124,14 +124,14 @@ struct color
 extern stream *clientlogfile;
 extern vector<char> *bootclientlog;
 
-extern void keypress(int code, bool isdown, SDL_Keymod mod = KMOD_NONE);
+extern void keypress(int code, int scancode, bool isdown, SDL_Keymod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand(int *pos);
 extern char *addreleaseaction(const char *s);
 extern void savehistory();
 extern void loadhistory();
-extern void textinput(const char* text);
+extern void processtextinput(const char* text);
 extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
 extern void clientlogf(const char *s, ...) PRINTFARGS(1, 2);
@@ -206,7 +206,7 @@ struct mitem
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
     int execaction(const char *arg1);
-    static color gray, white, whitepulse;
+    static color gray, orange, white, whitepulse;
     int mitemtype;
 
     enum { TYPE_TEXTINPUT, TYPE_KEYINPUT, TYPE_CHECKBOX, TYPE_MANUAL, TYPE_SLIDER };
@@ -380,16 +380,17 @@ extern glmatrixf mvmatrix, projmatrix, clipmatrix, mvpmatrix, invmvmatrix, invmv
 extern void resetcamera();
 
 extern void gl_checkextensions();
-extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
+extern void gl_init(int w, int h, int depth, int fsaa);
 extern void enablepolygonoffset(GLenum type);
 extern void disablepolygonoffset(GLenum type, bool restore = true);
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
 extern void line(int x1, int y1, int x2, int y2, color *c = NULL);
 extern void box(block &b, float z1, float z2, float z3, float z4);
 extern void box2d(int x1, int y1, int x2, int y2, int gray);
+extern void box2d_color(int x1, int y1, int x2, int y2, int r, int g, int b, float size = -1.0f);
 extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
-extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL);
+extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL, color *cborder = NULL);
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
@@ -477,7 +478,7 @@ enum
 
 extern const char *crosshairnames[];
 extern Texture *crosshairs[];
-extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
+extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f, int type = 0);
 // autodownload
 enum { PCK_TEXTURE = 0, PCK_SKYBOX, PCK_MAPMODEL, PCK_AUDIO, PCK_MAP, PCK_MOD, PCK_NUM };
 extern int autodownload;
@@ -677,23 +678,20 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 // main
 extern char *lang;
 extern SDL_Window* screen;
-extern int colorbits, depthbits, stencilbits;
+extern int stencilbits;
 
-extern bool keyrepeat;
+enum { KR_CONSOLE = 1 << 0, KR_MENU = 1 << 1, KR_EDITMODE = 1 << 2 };
+extern void keyrepeat(bool on, int mask = ~0);
+
+enum { TI_CONSOLE = 1 << 0, TI_MENU = 1 << 1 };
+extern void textinput(bool on, int mask = ~0);
+
 extern bool interceptkey(int sym);
 extern bool inmainloop;
 
-enum
-{
-    NOT_INITING = 0,
-    INIT_LOAD,
-    INIT_RESET
-};
-enum
-{
-    CHANGE_GFX   = 1<<0,
-    CHANGE_SOUND = 1<<1
-};
+enum { NOT_INITING = 0, INIT_LOAD, INIT_RESET };
+enum { CHANGE_GFX = 1 << 0, CHANGE_SOUND = 1 << 1 };
+
 extern bool initwarning(const char *desc, int level = INIT_RESET, int type = CHANGE_GFX);
 
 // rendertext
@@ -767,13 +765,15 @@ extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
 #define HUDPOS_X_BOTTOMLEFT 20
+#define HUDPOS_X_BOTTOMRIGHT 2980
 #define HUDPOS_Y_BOTTOMLEFT 1570
-#define HUDPOS_ICONSPACING 235
+#define HUDPOS_ICONSPACING 150
 #define HUDPOS_HEALTH (HUDPOS_X_BOTTOMLEFT / 2)
 #define HUDPOS_ARMOUR (HUDPOS_HEALTH + HUDPOS_ICONSPACING)
-#define HUDPOS_WEAPON (HUDPOS_ARMOUR + HUDPOS_ICONSPACING)
-#define HUDPOS_GRENADE (HUDPOS_WEAPON + HUDPOS_ICONSPACING)
-#define HUDPOS_NUMBERSPACING 70
+#define HUDPOS_GRENADE (HUDPOS_X_BOTTOMRIGHT - 10)
+#define HUDPOS_WEAPON (HUDPOS_GRENADE - HUDPOS_ICONSPACING*2)
+#define HUDPOS_NUMBERSPACING 130
+#define HUDPOS_ARBITRARY_NUMBER 850
 
 enum
 {

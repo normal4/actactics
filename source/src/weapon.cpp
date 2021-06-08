@@ -207,7 +207,6 @@ static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, c
     v.sub(from);
     w.sub(from);
     float c1 = w.dot(v);
-
     if(c1<=0) p = &from;
     else
     {
@@ -220,6 +219,8 @@ static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, c
             p = &v;
         }
     }
+
+
 
     if(p->x <= o.x+rad.x
        && p->x >= o.x-rad.x
@@ -241,11 +242,16 @@ static inline bool intersectsphere(const vec &from, const vec &to, vec center, f
     center.sub(from);
     float v = center.dot(ray),
           inside = radius*radius - center.squaredlen();
+
     if(inside < 0 && v < 0) return false;
+
     float raysq = ray.squaredlen(), d = inside*raysq + v*v;
     if(d < 0) return false;
     dist = (v - sqrtf(d)) / raysq;
+    //conoutf("after: %05.2f, %05.2f, %05.2f", center.x, center.y, center.z);
+
     return dist >= 0 && dist <= 1;
+
 }
 
 static inline bool intersectcylinder(const vec &from, const vec &to, const vec &start, const vec &end, float radius, float &dist)
@@ -296,25 +302,49 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
     return dist >= 0 && dist <= 1;
 }
 
+static inline bool intersectcapsule(const vec& from, const vec& to, const vec& start, const vec& end, float radius, float& dist)
+{
+    
+}
+
 
 int intersect(playerent *d, const vec &from, const vec &to, vec *end)
 {
     float dist;
+
+
     if(d->head.x >= 0)
     {
+        //should use capsules instead of spheres/cylinders
         if(intersectsphere(from, to, d->head, HEADSIZE, dist))
         {
             if(end) (*end = to).sub(from).mul(dist).add(from);
             return 2;
         }
     }
+
     float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
-    vec bottom(d->o), top(sinf(y) * c, -cosf(y) * c, sinf(p)), mid(top);
+    vec bottom(d->o), 
+        top(sinf(y) * c, -cosf(y) * c, sinf(p)), 
+        mid(top);
+    // mid = intersection point
+
     bottom.z -= d->eyeheight;
-    float h = d->eyeheight /*+ d->aboveeye*/; // this mod makes the shots pass over the shoulders
-    mid.mul(h*0.5).add(bottom);            // this mod divides the hitbox in 2
+    float h = d->eyeheight;
+    mid.mul(h*0.5).add(bottom);            // divides the hitbox in 2
     top.mul(h).add(bottom);
-    if( intersectcylinder(from, to, bottom, top, d->radius, dist) ) // FIXME if using 2 hitboxes
+
+    
+    if (intersectcylinder(from, to, mid, top, d->radius, dist))
+    {
+        if (end) (*end = to).sub(from).mul(dist).add(from);
+        return 1;
+    }
+    
+    //legs
+
+
+    if(intersectcylinder(from, to, bottom, mid, d->radius, dist)) 
     {
         if(end) (*end = to).sub(from).mul(dist).add(from);
         return 1;
@@ -848,7 +878,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         {
             case GUN_KNIFE: gib = true; break;
             case GUN_SNIPER: if(d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = true; }; break;
-            case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = false; }; break;
+            case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.18; gib = false; }; break;
             //case GUN_AKIMBO: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
             case GUN_SUBGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = false; }; break;
             //case GUN_SHOTGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
@@ -990,16 +1020,18 @@ VARP(oldfashionedgunstats, 0, 0, 1);
 void weapon::renderstats()
 {
     string gunstats;
-    if(oldfashionedgunstats) formatstring(gunstats)("%d/%d", mag, ammo); else formatstring(gunstats)("%d", mag);
-    draw_text(gunstats, HUDPOS_WEAPON + HUDPOS_NUMBERSPACING, 823);
+   
+    /*if(oldfashionedgunstats) formatstring(gunstats)("%d/%d", mag, ammo); else*/ formatstring(gunstats)("%d", mag);
+    draw_text(gunstats, HUDPOS_WEAPON + HUDPOS_NUMBERSPACING, HUDPOS_ARBITRARY_NUMBER*2);
+    /*
     if(!oldfashionedgunstats)
-    {
+    {*/
         int offset = text_width(gunstats);
         glScalef(0.5f, 0.5f, 1.0f);
         formatstring(gunstats)("%d", ammo);
-        draw_text(gunstats, (HUDPOS_WEAPON + HUDPOS_NUMBERSPACING + offset)*2, 826*2);
+        draw_text(gunstats, ((HUDPOS_WEAPON + HUDPOS_NUMBERSPACING + offset)*2), (HUDPOS_ARBITRARY_NUMBER + 3) *4);
         glLoadIdentity();
-    }
+    //}
 }
 
 
@@ -1351,7 +1383,8 @@ void grenades::renderstats()
 {
     char gunstats[64];
     sprintf(gunstats, "%d", mag);
-    draw_text(gunstats, oldfashionedgunstats ? HUDPOS_GRENADE + HUDPOS_NUMBERSPACING + 25 : HUDPOS_GRENADE + HUDPOS_NUMBERSPACING, 823);
+
+    draw_text(gunstats, oldfashionedgunstats ? HUDPOS_GRENADE + HUDPOS_NUMBERSPACING + 25 : HUDPOS_GRENADE + HUDPOS_NUMBERSPACING, HUDPOS_ARBITRARY_NUMBER * 2);
 }
 
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
@@ -1537,7 +1570,7 @@ void sniperrifle::renderaimhelp(bool teamwarning)
     if(scoped) drawscope();
     if(!editmode)
     {
-        if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
+        if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f, 1);
     }
     else drawcrosshair(owner, CROSSHAIR_EDIT);
 }
