@@ -27,6 +27,7 @@ struct vec
     vec &sub(float f) { x -= f; y -= f; z -= f; return *this; }
 
     vec &add(const vec &o) { x += o.x; y += o.y; z += o.z; return *this; }
+    vec &addz(float f) { z += f; return *this; }
     vec &sub(const vec &o) { x -= o.x; y -= o.y; z -= o.z; return *this; }
 
     float squaredlen() const { return x*x + y*y + z*z; }
@@ -77,6 +78,7 @@ struct vec
         v[(i+2)%3] = 0;
     }
 };
+
 
 static inline bool htcmp(const vec &x, const vec &y)
 {

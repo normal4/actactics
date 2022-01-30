@@ -345,7 +345,7 @@ void trypickupflag(int flag, playerent *d)
         if(f.state == CTFF_STOLEN) return;
         bool own = flag == team_base(d->team);
 
-        if(m_ctf)
+        if(m_ctf || m_gema)
         {
             if(own) // it's the own flag
             {

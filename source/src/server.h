@@ -536,7 +536,7 @@ guninfo guns[NUMGUNS] =
     { "shotgun", "V-19 CS",      S_SHOTGUN, S_RSHOTGUN, 2400,   880,    1,    0,     0,   0,  1,   35,    7,   9,  9,  10, 140,  140,   125,  1,   false },   // CAUTION dmg only sane for server!
     { "subgun",  "A-ARD/10 SMG", S_SUBGUN,  S_RSUBGUN,  1650,   70,     12,   0,     0,   0, 35,   10,   35,   1,  2,   4,  15,   53,   125,  1,   true  },
     { "sniper",  "AD-81 SR",     S_SNIPER,  S_RSNIPER,  1950,   1500,   82,  25,     0,   0, 50,   50,    5,   4,  4,  10,  85,   85,   100,  1,   false },
-    { "assault", "MTP-57 AR",    S_ASSAULT, S_RASSAULT, 2000,   120,    23,   0,     0,   0, 18,   30,   20,   0,  2,   3,  20,   45,   115,  1,   true  },
+    { "assault", "MTP-57 AR",    S_ASSAULT, S_RASSAULT, 2000,   120,    21,   0,     0,   0, 18,   30,   20,   0,  2,   3,  20,   45,   115,  1,   true  },
     { "cpistol", "nop",          S_PISTOL,  S_RPISTOL,  1400,   120,    19,   0,     0,   0, 35,   10,   15,   6,  5,   6,  35,   50,   125,  1,   false },   // temporary
     { "grenade", "Grenades",     S_NULL,    S_NULL,     1000,   650,    200,  0,    20,   6,  1,    1,   1,    3,  1,   0,   0,    0,    0,   3,   false },
     { "pistol",  "Akimbo",       S_PISTOL,  S_RAKIMBO,  1400,   80,     19,   0,     0,   0, 50,   10,   20,   6,  5,   4,  15,   25,   115,  1,   true  },

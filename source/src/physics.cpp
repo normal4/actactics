@@ -894,7 +894,7 @@ void fixcamerarange(physent *cam)
     while(cam->yaw>=360.0f) cam->yaw -= 360.0f;
 }
 
-FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);       // general mouse sensitivity ("unscoped")
+FVARP(sensitivity, 1e-3f, 1.5f, 1000.0f);       // general mouse sensitivity ("unscoped")
 FVARP(scopesens, 0, 0, 1000);                   // scoped mouse sensitivity (if zero, autoscopesens determines, how sensitivity is changed during scoping)
 FVARP(sensitivityscale, 1e-3f, 1, 1000);        // scale all sensitivity values (if unsure, keep at default value "1"- this parameter achieves cosmetic value changes only)
 

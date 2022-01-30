@@ -134,7 +134,9 @@ extern void loadhistory();
 extern void processtextinput(const char* text);
 extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
+
 extern void clientlogf(const char *s, ...) PRINTFARGS(1, 2);
+
 
 struct keym
 {
@@ -186,7 +188,7 @@ extern void refreshapplymenu(void *menu, bool init);
 struct mitem
 {
     struct gmenu *parent;
-    color *bgcolor;
+    color* bgcolor;
     bool greyedout;
     static bool menugreyedout;
 
@@ -206,7 +208,7 @@ struct mitem
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
     int execaction(const char *arg1);
-    static color gray, orange, white, whitepulse;
+    static color gray, orange, white, whitepulse, menuselbgcolor, menuseldescbgcolor;
     int mitemtype;
 
     enum { TYPE_TEXTINPUT, TYPE_KEYINPUT, TYPE_CHECKBOX, TYPE_MANUAL, TYPE_SLIDER };
@@ -768,11 +770,11 @@ extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 #define HUDPOS_X_BOTTOMRIGHT 2980
 #define HUDPOS_Y_BOTTOMLEFT 1570
 #define HUDPOS_ICONSPACING 150
-#define HUDPOS_HEALTH (HUDPOS_X_BOTTOMLEFT / 2)
+#define HUDPOS_HEALTH (HUDPOS_X_BOTTOMLEFT / 2) *2
 #define HUDPOS_ARMOUR (HUDPOS_HEALTH + HUDPOS_ICONSPACING)
 #define HUDPOS_GRENADE (HUDPOS_X_BOTTOMRIGHT - 10)
 #define HUDPOS_WEAPON (HUDPOS_GRENADE - HUDPOS_ICONSPACING*2)
-#define HUDPOS_NUMBERSPACING 130
+#define HUDPOS_NUMBERSPACING 140
 #define HUDPOS_ARBITRARY_NUMBER 850
 
 enum
@@ -853,6 +855,7 @@ extern const char *particletypenames[MAXPARTYPES + 1];
 
 // worldio
 enum { LWW_ENTATTROVERFLOW = 0x1, LWW_DECODEERR = 0x10, LWW_WORLDERROR = 0x100, LWW_MISSINGMEDIA = 0x1000, LWW_CONFIGERR = 0x10000, LWW_MODELERR = 0x100000, LWW_SCRIPTERR = 0x1000000 };
+
 extern const char *setnames(const char *name);
 extern void save_world(char *mname, bool skipoptimise = false, bool addcomfort = false);
 extern int _ignoreillegalpaths;
@@ -867,7 +870,9 @@ extern bool rldecodecubes(ucharbuf &f, sqr *s, int len, int version, bool silent
 extern void clearheaderextras();
 extern void automapconfig();
 extern void flagmapconfigchange();
+
 extern void flagmapconfigerror(int what);
+
 extern void getcurrentmapconfig(vector<char> &f, bool onlysounds);
 extern char *mapinfo_license, *mapinfo_comment;
 extern void setmapinfo(const char *newlicense = NULL, const char *newcomment = NULL);
@@ -920,7 +925,7 @@ extern void removebounceents(playerent *owner);
 extern void movebounceents();
 extern void clearbounceents();
 extern void renderbounceents();
-extern void addgib(playerent *d);
+extern void addgib(playerent *d, int gibdiv = 1);
 extern playerent *playerincrosshair();
 extern int magsize(int gun);
 extern void setscope(bool activate);
@@ -969,6 +974,7 @@ extern void *tigerhash_init(uchar *hash);
 extern void tigerhash_add(uchar *hash, const void *msg, int len, void *state);
 extern void tigerhash_finish(uchar *hash, void *state);
 extern void loadcertdir();     // load all certs in "config/certs"
+
 #if 0
 // crypto // for AUTH
 extern void genprivkey(const char *seed, vector<char> &privstr, vector<char> &pubstr);
@@ -1143,7 +1149,7 @@ struct servercommandline
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0), incoming_limit(10), afk_limit(45000), ban_time(20*60*1000), demotimelocal(0), matchlockmode(0), ht_limit(15 * 1000),
-                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""), 
+                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"), forbidden("config/forbidden.cfg"),
                             logtimestamp(false), demo_interm(false), loggamestatus(true),

@@ -10,7 +10,7 @@ VARP(altconsize, 0, 0, 100);
 VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
-VARP(conalpha, 0, 255, 255);
+VARP(conalpha, 0, 200, 255);
 VAR(conopen, 1, 0, 0);
 VAR(numconlines, 0, 0, 1);
 
@@ -37,12 +37,12 @@ struct console : consolebuffer<cline>
 
     void render()
     {
-        int conwidth = ((fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3)/1.5;
+        int conwidth = ((fullconsole ? VIRTW*1.6 : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3)/1.5;
         int h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
         int conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
 
-        color borderc(255, 255, 255);
-        if(fullconsole) blendbox(CONSPAD, CONSPAD+FONTH*1.5, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/1.75, true, -1, NULL, &borderc);
+        color borderc(55, 55, 55);
+        if(fullconsole) blendbox(CONSPAD, CONSPAD, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/1.75, true, -1, NULL);
 
         int numl = conlines.length(), offset = min(conskip, numl);
 
@@ -73,7 +73,7 @@ struct console : consolebuffer<cline>
             int idx = offset + numl-i-1;
             char *line = conlines[idx].line;
             
-            draw_text(line, CONSPAD+FONTH/3, y+FONTH*1.5, 0xFF, 0xFF, 0xFF, fullconsole ? 0xFF : conalpha, -1, conwidth);
+            draw_text(line, CONSPAD+FONTH/3, y+FONTH*1.25, 0xFF, 0xFF, 0xFF, fullconsole ? 0xFF : conalpha, -1, conwidth);
             int width, height;
             text_bounds(line, width, height, conwidth);
             y += height;

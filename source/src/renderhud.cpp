@@ -94,17 +94,17 @@ VARP(hidespecthud, 0, 0, 1);
 VAR(showmap, 0, 0, 1);
 VARP(editinfopanelmillis, 5, 80, 2000);
 
-
-VARP(crosshairsize, 0, 2, 50);
-VARP(crosshairlength, 1, 4, 100);
-VARP(crosshairgap, 0, 4, 100);
-VARP(crosshairdot, 0, 1, 1);
-VARP(crosshairdotsize, 0, 1, 100);
+VARP(crosshairvers, 0, 1, 1);
+VARP(crosshairsize, 1, 10, 50);
+VARP(newcrosshairsize, 1, 2, 50);
+VARP(newcrosshairlength, 1, 4, 100);
+VARP(newcrosshairgap, 0, 4, 100);
+VARP(newcrosshairdot, 0, 1, 1);
+VARP(newcrosshairdotsize, 0, 1, 50);
 
 VARP(crosshairfx, 0, 1, 3);
 VARP(crosshairteamsign, 0, 1, 1); 
 
-//crosshaircolor, gross, but i can't be bothered redesigning AC's macro bullshit
 VARP(crosshaircolor_r, 0, 255, 255);
 VARP(crosshaircolor_g, 0, 255, 255);
 VARP(crosshaircolor_b, 0, 255, 255);
@@ -240,86 +240,80 @@ void crosshaircolor(int* r, int* g, int* b, int* a)
     else if ((*r <= -1 || *r >= 256) || (*g <= -1 || *g >= 256) || (*b <= -1 || *b >= 256) || (*a <= -1 || *a >= 256))
     {
         conoutf("r/g/b and transparency values must be between 0 and 255");
-        conoutf("Crosshair color values - red: %d, green: %d, blue: %d, transparency: %d", 
+        conoutf("Crosshair color values: red: %d, green: %d, blue: %d, transparency: %d", 
             crosshaircolor_r, crosshaircolor_g, crosshaircolor_b, crosshairalpha);
     }
     else
     {
-        conoutf("Crosshair color values - red: %d, green: %d, blue: %d, transparency: %d", 
+        conoutf("Crosshair color values: red: %d, green: %d, blue: %d, transparency: %d", 
             crosshaircolor_r, crosshaircolor_g, crosshaircolor_b, crosshairalpha);
     }
 }
 
 COMMAND(crosshaircolor, "iiii");
-VARP(crosshairvers, 0, 1, 1);
+
 
 void drawcrosshair(playerent* p, int n, color* c, float size, int type)
 {
-    if (crosshairvers == 0 || type == 0)
+    if (editmode) return;
+    if ((crosshairvers == 0) && (type == 0))
     {
-        int xgap = crosshairgap;
-        int xlength = crosshairlength;
+        int xthick = newcrosshairsize;
+        int xgap = newcrosshairgap;
+        int xlength = newcrosshairlength;
 
         GLuint crosshairtex = 0;
+        createtexture(crosshairtex, size, size, NULL, 3, true, true, GL_RGBA);
         glGenTextures(1, &crosshairtex);
-        createtexture(crosshairtex, size, size, NULL, 0, true, true, GL_RGBA);
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         //forgive me god
-        GLuint r = crosshaircolor_r;
-        GLuint g = crosshaircolor_g;
-        GLuint b = crosshaircolor_b;
-        GLuint a = crosshairalpha;
+        GLuint r = crosshaircolor_r, g = crosshaircolor_g, b = crosshaircolor_b, a = crosshairalpha;
 
         glColor4ub(r, g, b, a);
 
         //east line
         glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - xlength - xgap, VIRTH / 2 - crosshairsize);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - xgap, VIRTH / 2 - crosshairsize);
-        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - xlength - xgap, VIRTH / 2 + crosshairsize);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - xgap, VIRTH / 2 + crosshairsize);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + xlength + xgap, VIRTH / 2 - xthick);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + xgap, VIRTH / 2 - xthick);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + xlength + xgap, VIRTH / 2 + xthick);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + xgap, VIRTH / 2 + xthick);
         glEnd();
-
         //west line
+
         glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 + xlength + xgap, VIRTH / 2 - crosshairsize);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + xgap, VIRTH / 2 - crosshairsize);
-        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 + xlength + xgap, VIRTH / 2 + crosshairsize);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + xgap, VIRTH / 2 + crosshairsize);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - xlength - xgap, VIRTH / 2 - xthick);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 - xgap, VIRTH / 2 - xthick);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - xlength - xgap, VIRTH / 2 + xthick);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 - xgap, VIRTH / 2 + xthick);
         glEnd();
 
 
         //south line
         glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - crosshairsize, VIRTH / 2 + xlength + xgap);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + crosshairsize, VIRTH / 2 + xlength + xgap);
-        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - crosshairsize, VIRTH / 2 + xgap);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + crosshairsize, VIRTH / 2 + xgap);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - xthick, VIRTH / 2 + xlength + xgap);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + xthick, VIRTH / 2 + xlength + xgap);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - xthick, VIRTH / 2 + xgap);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + xthick, VIRTH / 2 + xgap);
         glEnd();
 
         //north line
         glBegin(GL_TRIANGLE_STRIP);
-        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - crosshairsize, VIRTH / 2 - xgap);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + crosshairsize, VIRTH / 2 - xgap);
-        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - crosshairsize, VIRTH / 2 - xlength - xgap);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + crosshairsize, VIRTH / 2 - xlength - xgap);
+        glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - xthick, VIRTH / 2 - xgap);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + xthick, VIRTH / 2 - xgap);
+        glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - xthick, VIRTH / 2 - xlength - xgap);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + xthick, VIRTH / 2 - xlength - xgap);
         glEnd();
 
-        if (crosshairdot)
+        if (newcrosshairdot)
         {
-            glBegin(GL_TRIANGLE_STRIP);
-            glTexCoord2f(0, 0); glVertex2f(VIRTW / 2 - crosshairdotsize, VIRTH / 2 - crosshairdotsize);
-            glTexCoord2f(1, 0); glVertex2f(VIRTW / 2 + crosshairdotsize, VIRTH / 2 - crosshairdotsize);
-            glTexCoord2f(0, 1); glVertex2f(VIRTW / 2 - crosshairdotsize, VIRTH / 2 + crosshairdotsize);
-            glTexCoord2f(1, 1); glVertex2f(VIRTW / 2 + crosshairdotsize, VIRTH / 2 + crosshairdotsize);
-            glEnd();
+            circle(crosshairtex, VIRTW / 2, VIRTH / 2, newcrosshairdotsize, VIRTW / 2, VIRTH / 2, newcrosshairdotsize);
         }
     }
-    
+
     // old crosshairs/custom crosshairs
-    else 
+    else if (crosshairvers == 1 || type == 1)
     {
         Texture* crosshair = crosshairs[n];
         if (!crosshair)
@@ -452,14 +446,17 @@ void drawequipicons(playerent *p)
     // health & armor
     if(p->armour) drawequipicon(HUDPOS_ARMOUR*2, 1660, (p->armour-1)/25, 2);
     drawequipicon(HUDPOS_HEALTH*2, 1660, 2, 3);
-    if (p->mag[GUN_GRENADE]) drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25) * 2 : HUDPOS_GRENADE, 1650, 3, 1);
+
+    if (p->mag[GUN_GRENADE]) 
+    //drawequipicon(oldfashionedgunstats ? (HUDPOS_GRENADE + 25) * 2 : HUDPOS_GRENADE, 1650, 3, 1);
+    drawequipicon(HUDPOS_GRENADE, 1660, 3, 1);
 
     // weapons
     int c = p->weaponsel->type != GUN_GRENADE ? p->weaponsel->type : getprevweaponsel(p), r = 0;
     if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c>3) { c -= 4; r = 1; }
 
-    if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON, 1650, c, r);
+    if(p->weaponsel && valid_weapon(p->weaponsel->type)) drawequipicon(HUDPOS_WEAPON, 1660, c, r);
     glEnable(GL_BLEND);
 }
 
@@ -907,11 +904,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 {
     if(blankouthud > 0) { blankouthud -= elapsed; return; }
     else blankouthud = 0;
+
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
+
     bool spectating = player1->isspectating();
 
     glDisable(GL_DEPTH_TEST);
-
+    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -932,6 +931,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glVertex2f(VIRTW, VIRTH);
         glEnd();
     }
+
 
     if(lastmillis < damageblendmillis && damageblendplayer == p)
     {
@@ -960,6 +960,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool menu = menuvisible();
     bool command = getcurcommand(NULL) ? true : false;
     bool reloading = lastmillis < p->weaponsel->reloading + p->weaponsel->info.reloadtime;
+
     if(p->state==CS_ALIVE || p->state==CS_EDITING)
     {
         bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
@@ -1007,22 +1008,54 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(showstats)
     {
+        defformatstring(c_val)("\f4Client FPS: \f0%d", curfps);
+        int hudtop = FONTH / 2, hudleft = FONTH / 1.5;
+
         if(showstats==2 && !dbgpos)
         {
-            int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2, ttll = VIRTW*2 - 3*FONTH/2, lf = lod_factor();
-            blendbox(left - 24, top - 24, VIRTW*2 - 72, VIRTH*2 - 48, true, -1);
+            int left = (VIRTW - 225 - 10) * 2, top = (VIRTH * 7 / 8) * 2, ttll = VIRTW * 2 - 3 * FONTH / 2;
+            int lf = lod_factor();
+            int hud_eledist_fpstolod = 900, hud_eledist_other = 425;
+            int boxspace = 300;
 
-            draw_text("fps", left - (text_width("fps") + FONTH / 2), top);
-            draw_text("lod", left - (text_width("lod") + FONTH / 2), top + 80);
-            draw_text("wqd", left - (text_width("wqd") + FONTH / 2), top + 160);
-            draw_text("wvt", left - (text_width("wvt") + FONTH / 2), top + 240);
-            draw_text("evt", left - (text_width("evt") + FONTH / 2), top + 320);
+            defformatstring(lod_val)("\f4evt: \f0%d", lf);
+            defformatstring(wqd_val)("\fwqd: \f0%d", nquads);
+            defformatstring(wvt_val)("\f4wvt: \f0%d", curvert);
+            defformatstring(evt_val)("\f4evt: \f0%d", xtraverts);
 
-            formatstring(text)("\f%c%d", rangecolor(curfps, "xwvu", 30, 100, 150), curfps);             draw_text(text, ttll - text_width(text), top);
-            formatstring(text)("\f%c%d", rangecolor(lf, "uvwx", 199, 299, 399), lf);                    draw_text(text, ttll - text_width(text), top + 80);
-            formatstring(text)("\f%c%d", rangecolor(nquads, "uvwx", 3999, 5999, 7999), nquads);         draw_text(text, ttll - text_width(text), top + 160);
-            formatstring(text)("\f%c%d", rangecolor(curvert, "uvwx", 3999, 5999, 7999), curvert);       draw_text(text, ttll - text_width(text), top + 240);
-            formatstring(text)("\f%c%d", rangecolor(xtraverts, "uvwx", 3999, 5999, 7999), xtraverts);   draw_text(text, ttll - text_width(text), top + 320);
+
+            color boxc(1, 1, 1, 0.05f);
+            int box_left_lod = hud_eledist_fpstolod - text_width("lod: ");
+            int box_left_wqd = hud_eledist_fpstolod + hud_eledist_other - text_width("wqd: ");
+            int box_left_wvt = hud_eledist_fpstolod + hud_eledist_other*2 - text_width("wvt: ");
+            int box_left_evt = hud_eledist_fpstolod + hud_eledist_other*3 - text_width("evt: ");
+
+            draw_text("\f4Client FPS: ", hudleft, hudtop);
+                blendbox(hudleft, FONTH * 1.5, text_width(c_val) + FONTH/1.25, FONTH / 3, false, -1, &boxc);
+
+            draw_text("\f4lod: ", hudleft - (text_width("lod: ") + FONTH / 2) + hud_eledist_fpstolod, hudtop);
+                blendbox(box_left_lod, FONTH*1.5, box_left_lod + text_width(lod_val), FONTH / 3, false, -1, &boxc);
+
+            draw_text("\f4wqd: ", hudleft - (text_width("wqd: ") + FONTH / 2) + hud_eledist_fpstolod + hud_eledist_other, hudtop);
+                blendbox(box_left_wqd, FONTH * 1.5, box_left_wqd + text_width(wqd_val) + FONTH*1.1, FONTH / 3, false, -1, &boxc);
+
+            draw_text("\f4wvt: ", hudleft - (text_width("wvt: ") + FONTH / 2) + hud_eledist_fpstolod + hud_eledist_other*2, hudtop);
+                blendbox(box_left_wvt, FONTH * 1.5, box_left_wvt + text_width(wvt_val) + FONTH/2.5, FONTH / 3, false, -1, &boxc);
+
+            draw_text("\f4evt: ", hudleft - (text_width("evt: ") + FONTH / 2) + hud_eledist_fpstolod + hud_eledist_other*3, hudtop);
+                blendbox(box_left_evt, FONTH * 1.5, box_left_evt + text_width(evt_val) + FONTH/2.5, FONTH / 3, false, -1, &boxc);
+
+            
+            formatstring(text)("\f%c%d", rangecolor(curfps, "xwvu", 30, 100, 150), curfps);             draw_text(text, hudleft + text_width("Client FPS: "), hudtop);
+            formatstring(text)("\f%c%d", rangecolor(lf, "uvwx", 199, 299, 399), lf);                    draw_text(text, hudleft - FONTH/2 + hud_eledist_fpstolod, hudtop);
+            formatstring(text)("\f%c%d", rangecolor(nquads, "uvwx", 3999, 5999, 7999), nquads);         draw_text(text, hudleft - FONTH/2 + hud_eledist_fpstolod +
+                                                                                                                  hud_eledist_other, hudtop);
+            formatstring(text)("\f%c%d", rangecolor(curvert, "uvwx", 3999, 5999, 7999), curvert);       draw_text(text, hudleft - FONTH / 2 + hud_eledist_fpstolod +
+                                                                                                                  hud_eledist_other*2, hudtop);
+            formatstring(text)("\f%c%d", rangecolor(xtraverts, "uvwx", 3999, 5999, 7999), xtraverts);   draw_text(text, hudleft - FONTH / 2 + hud_eledist_fpstolod +
+                                                                                                                  hud_eledist_other*3, hudtop);
+
+            //blendbox(hudtop, FONTH * 1.5, hudleft - FONTH / 2 + hud_eledist_fpstolod + text_width("10000") + hud_eledist_other * 3, FONTH / 3, false, -1, &boxc);
 
             if(wallclock) draw_text(ltime, ttll - text_width(ltime), top - 90);
             //i am triggered by this 'feature'
@@ -1044,10 +1077,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             //if(wallclock) draw_text(ltime, VIRTW*2 -( text_width(ltime) - FONTH + 300), VIRTH*2 - 3*FONTH/2);
             //if(unsavededits) draw_text("Unsaved edits", VIRTW*2 - text_width("U") - FONTH, VIRTH*2 - (wallclock ? 7 : 5)*FONTH/2);
 
-            defformatstring(c_val)("\f4Client FPS: \f0%d", curfps);         draw_text(c_val, FONTH/1.5, FONTH/2);
+            draw_text(c_val, hudleft, hudtop);
             //if(wallclock)                                     draw_text(ltime, text_width(ltime) + 1000, FONTH/2);
 
-            blendbox(FONTH/2, FONTH * 1.5, text_width(c_val) + FONTH, FONTH / 3, false); //lol
+            color boxc(1, 1, 1, 0.05f);
+            blendbox(hudtop, FONTH * 1.5, text_width(c_val) + FONTH, FONTH / 3, false, -1, &boxc); 
             //blendbox(FONTH/3 + 1000, FONTH * 1.5, text_width(ltime) + 100, FONTH / 3, false);
         }
     }
@@ -1185,7 +1219,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
     }
 
-    // bosnia wizard magic
+    
 
     if(p->state == CS_ALIVE || (p->state == CS_DEAD && p->spectatemode == SM_DEATHCAM))
     {
@@ -1193,6 +1227,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
         glScalef(0.5, 0.5, 1.0f);
 
+        // bosnia wizard magic
         if(p->state == CS_ALIVE && !hidehudequipment)
         {
             pushfont("huddigits");

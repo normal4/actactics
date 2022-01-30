@@ -1039,7 +1039,7 @@ void flagaction(int flag, int action, int actor)
     int score = 0;
     int message = -1;
 
-    if(m_ctf || m_htf)
+    if(m_ctf || m_htf || m_gema)
     {
         switch(action)
         {
@@ -1048,7 +1048,7 @@ void flagaction(int flag, int action, int actor)
             {
                 if(deadactor || f.state != (action == FA_STEAL ? CTFF_INBASE : CTFF_DROPPED) || !flagdistance(f, actor)) { abort = 10; break; }
                 int team = team_base(clients[actor]->team);
-                if(m_ctf) team = team_opposite(team);
+                if(m_ctf || m_gema) team = team_opposite(team);
                 if(team != flag) { abort = 11; break; }
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
@@ -1069,7 +1069,7 @@ void flagaction(int flag, int action, int actor)
                 message = FM_RETURN;
                 break;
             case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
-                if(m_ctf)
+                if(m_ctf || m_gema)
                 {
                     if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE || !flagdistance(of, actor)) { abort = 14; break; }
                     score = 1;
@@ -1581,6 +1581,7 @@ void checkitemspawns(int diff)
 
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
+    if (m_gema && target != actor) return;
     if (!m_demo && !m_coop && !validdamage(target, actor, damage, gun, gib)) return;
     if ( m_arena && gun == GUN_GRENADE && arenaroundstartmillis + 2000 > gamemillis && target != actor ) return;
     clientstate &ts = target->state;
@@ -1831,7 +1832,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
         }
     }
 
-    if(m_ctf || m_htf)
+    if(m_ctf || m_htf || m_gema)
     {
         ctfreset();
         sendflaginfo();
@@ -1857,7 +1858,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     if(mastermode != MM_PUBLIC || totalclients < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
     int totalscore = 0, nplayers = 0;
-    int flagmult = (m_ctf ? 50 : (m_htf ? 25 : 12));
+    int flagmult = ((m_ctf) ? 50 : (m_htf ? 25 : 12));
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
@@ -4066,7 +4067,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_flags) loopi(2)
         {
             sflaginfo &f = sflaginfos[i];
-            if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : 10000)) flagaction(i, FA_RESET, -1);
+            if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > ((m_ctf || m_gema) ? 30000 : 10000)) flagaction(i, FA_RESET, -1);
             if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
             {
                 htf_forceflag(i);

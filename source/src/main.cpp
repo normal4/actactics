@@ -106,7 +106,7 @@ VARF(scr_h, SCR_MINH, -1, SCR_MAXH, initwarning("screen resolution"));
 VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
 VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
-VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
+VARF(vsync, -1, 0, 1, initwarning("vertical sync"));
 
 VAR(desktopw, 1, 0, 0); // resolution of desktop (assumed to be maximum resolution)
 VAR(desktoph, 1, 0, 0);
@@ -469,6 +469,8 @@ int setgamma(int newgamma) // replacement for SDL_SetGamma
 }
 
 static int curgamma = 100;
+
+VARP(defaultgamma, 30, 100, 300);
 
 VARNFP(gamma, vgamma, 30, 100, 300,
 {
@@ -1239,7 +1241,9 @@ int main(int argc, char **argv)
 #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
 #endif
+    SDL_SetMainReady();
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
+    
     SDL_version sdlver;
     SDL_GetVersion(&sdlver);
     if (SDL_COMPILEDVERSION != SDL_VERSIONNUM(sdlver.major, sdlver.minor, sdlver.patch))

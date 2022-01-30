@@ -30,6 +30,7 @@ void processevent(client *c, explodeevent &e)
         bool chk_cnr = c->clientnum == target->clientnum;
         if(chk_gun && chk_dir && chk_dst && chk_cnr) damage = INT_MAX; // nade suicide
         serverdamage(target, c, damage, e.gun, true, h.dir);
+
     }
 }
 
@@ -91,6 +92,7 @@ void processevent(client *c, shotevent &e)
                 }
                 else
                 {
+
                     damage = rays*guns[e.gun].damage;
                     gib = e.gun == GUN_KNIFE;
                     if((e.gun == GUN_SNIPER ) && h.info != 0)
@@ -98,45 +100,48 @@ void processevent(client *c, shotevent &e)
                         gib = true;
                         damage *= 3;
                     }
-
-                    /*
+                    
                     if ((e.gun == GUN_ASSAULT) && h.info != 0)
-                    {
-                        gib = true;
-                        damage *= 2.18;
-                    }
-
-                    if ((e.gun == GUN_PISTOL) && h.info != 0)
                     {
                         gib = true;
                         damage *= 2.5;
                     }
 
-                    if ((e.gun == GUN_AKIMBO) && h.info != 0)
+                    if ((e.gun == GUN_PISTOL) && h.info != 0)
                     {
                         gib = true;
                         damage *= 1.5;
                     }
 
+                    /*
+                    if ((e.gun == GUN_AKIMBO) && h.info != 0)
+                    {
+                        gib = true;
+                        damage *= 1.5;
+                    }
+                    */
+
                     if ((e.gun == GUN_SUBGUN) && h.info != 0)
                     {
                         gib = true;
-                        damage *= 2.15;
+                        damage *= 1.7;
                     }
 
+                    /*
                     if ((e.gun == GUN_SHOTGUN) && h.info != 0)
                     {
                         gib = true;
                         damage *= 1.5;
                     }
                     */
+
                     if ((e.gun == GUN_CARBINE) && h.info != 0)
                     {
                         gib = true;
-                        damage *= 3;
+                        damage *= 1.7;
                     }
 
-                }
+                }                
                 totalrays += rays;
 
                 if(totalrays>maxrays) continue;

@@ -3,8 +3,8 @@
 #include "cube.h"
 
 hashtable<const char *, gmenu> menus;
-gmenu *curmenu = NULL, *lastmenu = NULL;
-color *menuselbgcolor, *menuseldescbgcolor = NULL;
+gmenu *curmenu, *lastmenu = NULL;
+
 static int menurighttabwidth = 888; // width of sliders and text input fields (is adapted to font and screen size later)
 
 vector<gmenu *> menustack;
@@ -155,7 +155,7 @@ void rendermenu()
 
 void mitem::render(int x, int y, int w)
 {
-    if(isselection()) renderbg(x, y, w, menuselbgcolor);
+    if(isselection()) renderbg(x, y, w, &menuselbgcolor);
     else if(bgcolor) renderbg(x, y, w, bgcolor);
 }
 
@@ -184,6 +184,8 @@ bool mitem::isselection() { return parent->allowinput && !parent->hotkeys && par
 color mitem::gray(0.2f, 0.2f, 0.2f);
 color mitem::white(1.0f, 1.0f, 1.0f);
 color mitem::whitepulse(1.0f, 1.0f, 1.0f);
+color mitem::menuselbgcolor(0.1f, 0.1f, 0.1f);
+color mitem::menuseldescbgcolor(0.1f, 0.1f, 0.1f);
 
 bool mitem::menugreyedout = false;
 
@@ -405,8 +407,8 @@ struct mitemtextinput : mitemtext
         bool sel = isselection();
         if(sel)
         {
-            renderbg(x+w-menurighttabwidth, y-FONTH/6, menurighttabwidth, menuselbgcolor);
-            renderbg(x, y-FONTH/6, w-menurighttabwidth-FONTH/2, menuseldescbgcolor);
+            renderbg(x+w-menurighttabwidth, y-FONTH/6, menurighttabwidth, &menuselbgcolor);
+            renderbg(x, y-FONTH/6, w-menurighttabwidth-FONTH/2, &menuseldescbgcolor);
         }
         draw_text(text, x, y, c, c, c);
         int cibl = (int)strlen(input.buf); // current input-buffer length
@@ -530,6 +532,7 @@ struct mitemslider : mitem
 
     virtual void render(int x, int y, int w)
     {
+        
         bool sel = isselection();
         int range = max_-min_;
         int cval = value-min_;
@@ -537,9 +540,9 @@ struct mitemslider : mitem
         int tw = text_width(text), ow = isradio ? text_width(curval) : menurighttabwidth, pos = !isradio || ow < menurighttabwidth ? menurighttabwidth : ow;
         if(sel)
         {
-            renderbg(x + w - pos, y, ow, menuselbgcolor);
-            renderbg(x, y, w - pos - FONTH/2, menuseldescbgcolor);
-            if(pos - ow > FONTH/2) renderbg(x + w - pos + ow + FONTH/2, y, pos - ow - FONTH/2, menuseldescbgcolor);
+            renderbg(x + w - pos, y, ow, &menuselbgcolor);
+            renderbg(x, y, w - pos - FONTH/2, &menuseldescbgcolor);
+            if(pos - ow > FONTH/2) renderbg(x + w - pos + ow + FONTH/2, y, pos - ow - FONTH/2, &menuseldescbgcolor);
         }
         int c = greyedout ? 128 : 255;
         draw_text(text, x, y, c, c, c);
@@ -651,7 +654,7 @@ struct mitemkeyinput : mitem
         if(isselection())
         {
             blendbox(x+w-tw-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
-            blendbox(x, y-FONTH/6, x+w-tw-FONTH, y+FONTH+FONTH/6, false, -1, menuseldescbgcolor);
+            blendbox(x, y-FONTH/6, x+w-tw-FONTH, y+FONTH+FONTH/6, false, -1, &menuseldescbgcolor);
         }
         draw_text(text, x, y, c, c, c);
         draw_text(keyname, x+w-tw, y, c, c, c);
@@ -761,9 +764,9 @@ struct mitemcheckbox : mitem
 
         if(sel)
         {
-            renderbg(x, y, w-boxsize-offs-FONTH/2, menuseldescbgcolor);
-            renderbg(x+w-boxsize-offs, y, boxsize, menuselbgcolor);
-            if(offs > FONTH/2) renderbg(x+w-offs+FONTH/2, y, offs-FONTH/2, menuseldescbgcolor);
+            renderbg(x, y, w-boxsize-offs-FONTH/2, &menuseldescbgcolor);
+            renderbg(x+w-boxsize-offs, y, boxsize, &menuselbgcolor);
+            if(offs > FONTH/2) renderbg(x+w-offs+FONTH/2, y, offs-FONTH/2, &menuseldescbgcolor);
         }
         draw_text(text, x, y, c, c, c);
         x -= offs;
@@ -1073,12 +1076,14 @@ bool parsecolor(color *col, const char *r, const char *g, const char *b, const c
     return true;
 }
 
+/*
 void menuselectionbgcolor(char *r, char *g, char *b, char *a)
 {
     if(!menuselbgcolor) menuselbgcolor = new color;
     if(!r[0]) { DELETEP(menuselbgcolor); return; }
     parsecolor(menuselbgcolor, r, g, b, a);
 }
+
 COMMAND(menuselectionbgcolor, "ssss");
 
 void menuselectiondescbgcolor(char *r, char *g, char *b, char *a)
@@ -1088,6 +1093,7 @@ void menuselectiondescbgcolor(char *r, char *g, char *b, char *a)
     parsecolor(menuseldescbgcolor, r, g, b, a);
 }
 COMMAND(menuselectiondescbgcolor, "ssss");
+*/
 
 static bool iskeypressed(int key)
 {
@@ -1304,7 +1310,7 @@ int (*menufilesortcmp[])(const char **, const char **) = { stringsort, stringsor
 
 void gmenu::init()
 {
-    if(!menuseldescbgcolor) menuseldescbgcolor = new color(0.2f, 0.2f, 0.2f, 0.2f);
+    //if(!menuseldescbgcolor) menuseldescbgcolor = new color(0.2f, 0.2f, 0.2f, 0.2f);
     if(dirlist && dirlist->dir && dirlist->ext)
     {
         items.deletecontents();
@@ -1498,7 +1504,7 @@ void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/menu.jpg");
     static color transparent(1, 1, 1, 0.65f);
-    color borderc(255, 150, 1);
+    static color borderc(20, 20, 20);
     blendbox(x1, y1, x2, y2, border, tex->id, &transparent, &borderc);
 }
 

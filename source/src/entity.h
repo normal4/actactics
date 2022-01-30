@@ -415,18 +415,6 @@ public:
 #define ROLLEFFMAX 30
 #define ROLLEFFDEF 0
 
-/*
-struct xhaircolor
-{
-    int r, g, b;
-    xhaircolor() {}
-
-    xhaircolor(int r, int g, int b) : r(r), g(g), b(b) {};
-};
-*/
-
-// to add: networked crosshairs
-
 class playerent : public dynent, public playerstate
 {
 private:

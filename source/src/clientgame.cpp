@@ -1250,7 +1250,7 @@ void startmap(const char *name, bool reset, bool norespawn)   // called just aft
     minutesremaining = -1;
     lastgametimeupdate = 0;
     arenaintermission = 0;
-    bool noflags = (m_ctf || m_ktf) && !clentstats.hasflags;
+    bool noflags = (m_ctf || m_ktf || m_gema) && !clentstats.hasflags;
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
     if(showmodedescriptions && (multiplayer(NULL) || m_botmode))
@@ -1309,8 +1309,8 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             audiomgr.playsound(S_FLAGPICKUP, SP_HIGHEST);
             if(firstperson)
             {
-                hudoutf("\f2you have the %sflag", m_ctf ? "enemy " : "");
-                audiomgr.musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
+                hudoutf("\f2you have the %sflag", (m_ctf || m_gema) ? "enemy " : "");
+                audiomgr.musicsuggest(M_FLAGGRAB, (m_ctf || m_gema) ? 90*1000 : 900*1000, true);
                 musicplaying = flag;
             }
             else hudoutf("\f2%s%s has %s flag", flagteam, colorname(act), teamstr);
@@ -1338,7 +1338,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             if(firstperson)
             {
                 hudoutf("\f2you scored");
-                if(m_ctf) firstpersondrop = true;
+                if(m_ctf || m_gema) firstpersondrop = true;
             }
             else hudoutf("\f2%s scored for %s", colorname(act), neutral ? teamnames[act->team] : teammate ? "your team" : "the enemy team");
             break;
@@ -1613,7 +1613,7 @@ void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 const char *modestrings[] =
 {
     "tdm", "coop", "dm", "lms", "ts", "ctf", "pf", "btdm", "bdm", "lss",
-    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok"
+    "osok", "tosok", "bosok", "htf", "tktf", "ktf", "tpf", "tlss", "bpf", "blss", "btsurv", "btosok", "gema"
 };
 
 void setnext(char *mode, char *map)

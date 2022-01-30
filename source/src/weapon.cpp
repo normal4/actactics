@@ -7,6 +7,7 @@
 VARP(autoreload, 0, 1, 1);
 VARP(akimboautoswitch, 0, 1, 1);
 VARP(akimboendaction, 0, 3, 3); // 0: switch to knife, 1: stay with pistol (if has ammo), 2: switch to grenade (if possible), 3: switch to primary (if has ammo) - all fallback to previous one w/o ammo for target
+const int gibdiv = 1;
 
 struct sgray {
     int ds; // damage flag: 0:outer, 1:medium, 2:center
@@ -302,11 +303,6 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
     return dist >= 0 && dist <= 1;
 }
 
-static inline bool intersectcapsule(const vec& from, const vec& to, const vec& start, const vec& end, float radius, float& dist)
-{
-    
-}
-
 
 int intersect(playerent *d, const vec &from, const vec &to, vec *end)
 {
@@ -347,7 +343,7 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
     if(intersectcylinder(from, to, bottom, mid, d->radius, dist)) 
     {
         if(end) (*end = to).sub(from).mul(dist).add(from);
-        return 1;
+        return 3;
     }
     return 0;
 }
@@ -643,8 +639,8 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
         else
         {
             h.dir = ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
-//             damageeffect(damage, d);
-//             audiomgr.playsound(S_PAIN1+rnd(5), d);
+             //damageeffect(damage, d);
+             //audiomgr.playsound(S_PAIN1+rnd(5), d);
         }
     }
 }
@@ -749,13 +745,13 @@ VARP(gibnum, 0, 6, 1000);
 VARP(gibttl, 0, 7000, 60000);
 VARP(gibspeed, 1, 30, 100);
 
-void addgib(playerent *d)
+void addgib(playerent *d, int gibdiv)
 {
     if(!d || !gib || !gibttl) return;
     audiomgr.playsound(S_GIB, d);
     d->nocorpse = true; // don't render regular corpse: it was gibbed
 
-    loopi(gibnum)
+    loopi(gibnum/gibdiv)
     {
         bounceent *p = bounceents.add(new bounceent);
         p->owner = d;
@@ -782,8 +778,10 @@ void addgib(playerent *d)
         p->vel.mul(speed/100.0f);
 
         p->resetinterp();
+        gibdiv = 1;
     }
 }
+
 
 void shorten(const vec &from, vec &target, float distsquared)
 {
@@ -877,15 +875,18 @@ void raydamage(vec &from, vec &to, playerent *d)
         switch(d->weaponsel->type)
         {
             case GUN_KNIFE: gib = true; break;
-            case GUN_SNIPER: if(d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = true; }; break;
-            case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.18; gib = false; }; break;
+            case GUN_SNIPER: if (d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = true; addgib(o, 4); }; break;
+            case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.5; gib = false; addgib(o, 4); }; break;
             //case GUN_AKIMBO: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
-            case GUN_SUBGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = false; }; break;
+            case GUN_SUBGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = false; addgib(o, 4); }; break;
             //case GUN_SHOTGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
-            case GUN_CARBINE: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; }; break;
-            case GUN_PISTOL: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = false; }; break;
+            case GUN_CARBINE: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; addgib(o, 4); }; break;
+            case GUN_PISTOL: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = false; addgib(o, 4); }; break;
             default: break;
         }
+        
+        if (hitzone == HIT_LEG) dam *= 0.75;
+
         bool info = gib;
         hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info ? 1 : 0);
         if(d == player1) hit = true;
@@ -1026,7 +1027,7 @@ void weapon::renderstats()
     /*
     if(!oldfashionedgunstats)
     {*/
-        int offset = text_width(gunstats);
+        int offset = text_width(gunstats)+8;
         glScalef(0.5f, 0.5f, 1.0f);
         formatstring(gunstats)("%d", ammo);
         draw_text(gunstats, ((HUDPOS_WEAPON + HUDPOS_NUMBERSPACING + offset)*2), (HUDPOS_ARBITRARY_NUMBER + 3) *4);

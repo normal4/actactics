@@ -167,7 +167,7 @@ void flagpoints(client *c, int message)
             break;
         case FM_LOST:
             if (m_htf) addpt(c, HTFLOSTPT);
-            else if (m_ctf) {
+            else if (m_ctf || m_gema) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;                   // ~200 is the distance between the flags in ac_depot
                 addpt(c, CTFLOSTPT);
@@ -177,7 +177,7 @@ void flagpoints(client *c, int message)
             addpt(c, CTFRETURNPT);
             break;
         case FM_SCORE:
-            if (m_ctf) {
+            if (m_ctf || m_gema) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;
 #ifdef ACAC
@@ -405,7 +405,7 @@ void checkcover(client *target, client *actor)
         sflaginfo &f = sflaginfos[team];
         sflaginfo &of = sflaginfos[oteam];
 
-        if ( m_ctf )
+        if ( m_ctf)
         {
             if ( f.state == CTFF_INBASE )
             {
@@ -467,7 +467,7 @@ void checkfrag(client *target, client *actor, int gun, bool gib)
                 checkcover (target, actor);
                 if ( m_htf && actorhasflag >= 0 ) addpt(actor, HTFFRAGPT);
 
-                if ( m_ctf && targethasflag >= 0 ) {
+                if ((m_ctf) && targethasflag >= 0 ) {
                     addpt(actor, CTFFRAGPT);
                 }
             }

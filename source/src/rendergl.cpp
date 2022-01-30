@@ -268,6 +268,7 @@ void box2d_color(int x1, int y1, int x2, int y2, color *c, int a, float size)
     glEnd();
 }
 
+
 void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy)
 {
     if(!tsy) tsy = tsx;
@@ -486,7 +487,7 @@ void fixresizedscreen()
 }
 
 void fovchanged();
-FVARFP(fov, 75, 90, 120, fovchanged());
+FVARFP(fov, 75, 103, 120, fovchanged());
 VARFP(scopefov, 5, 50, 60, fovchanged());
 VARP(spectfov, 5, 110, 120);
 void fovchanged()
