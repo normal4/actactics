@@ -607,7 +607,6 @@ vector<hitmsg> hits;
 void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info)
 {
     if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
-
     if(at == player1 && d != player1)
     {
         extern int hitsound;
@@ -871,24 +870,39 @@ void raydamage(vec &from, vec &to, playerent *d)
     else if((o = intersectclosest(from, to, d, distsquared, hitzone)))
     {
         bool gib = false;
+        int info = 0; 
         
-        switch(d->weaponsel->type)
+        if (d == player1)
         {
+            switch (d->weaponsel->type)
+            {
             case GUN_KNIFE: gib = true; break;
-            case GUN_SNIPER: if (d == player1 && hitzone == HIT_HEAD) { dam *= 3; gib = true; addgib(o, 4); }; break;
-            case GUN_ASSAULT: if (d == player1 && hitzone == HIT_HEAD) { dam *= 2.5; gib = false; addgib(o, 4); }; break;
-            //case GUN_AKIMBO: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
-            case GUN_SUBGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = false; addgib(o, 4); }; break;
-            //case GUN_SHOTGUN: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; }; break;
-            case GUN_CARBINE: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; addgib(o, 4); }; break;
-            case GUN_PISTOL: if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = false; addgib(o, 4); }; break;
+            case GUN_SNIPER:
+                if (hitzone == HIT_HEAD) { dam *= 3; gib = true; info = 1; addgib(o, 4); }; 
+                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                break;
+            case GUN_ASSAULT:
+                if (hitzone == HIT_HEAD) { dam *= 2.5; gib = true; info = 1; addgib(o, 4); }; 
+                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                break;
+            case GUN_SUBGUN: 
+                if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; info = 1; addgib(o, 4); }; 
+                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                break;
+            case GUN_CARBINE: 
+                if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; info = 1; addgib(o, 4); }; 
+                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                break;
+            case GUN_PISTOL: 
+                if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; info = 1; addgib(o, 4); }; 
+                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                break;
             default: break;
+            }
         }
-        
-        if (hitzone == HIT_LEG) dam *= 0.75;
 
-        bool info = gib;
-        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info ? 1 : 0);
+
+        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, info);
         if(d == player1) hit = true;
         shorten(from, to, distsquared);
         hitscount++;

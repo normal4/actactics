@@ -95,22 +95,46 @@ void processevent(client *c, shotevent &e)
 
                     damage = rays*guns[e.gun].damage;
                     gib = e.gun == GUN_KNIFE;
-                    if((e.gun == GUN_SNIPER ) && h.info != 0)
+                    if((e.gun == GUN_SNIPER ) && h.info > 0 && h.info <= 2)
                     {
-                        gib = true;
-                        damage *= 3;
+                        if (h.info == 1)
+                        {
+                            gib = true;
+                            damage *= 3;
+                        }
+                        else if (h.info == 2)
+                        {
+                            damage *= 0.75;
+                        }
                     }
                     
                     if ((e.gun == GUN_ASSAULT) && h.info != 0)
                     {
-                        gib = true;
-                        damage *= 2.5;
+                        if (h.info == 1)
+                        {
+                            gib = true;
+                            damage *= 2.5;
+
+                            logline(ACLOG_INFO, "%d", h.info);
+                        }
+                        else if (h.info == 2)
+                        {
+                            damage *= 0.75;
+                            logline(ACLOG_INFO, "%d", h.info);
+                        }
                     }
 
                     if ((e.gun == GUN_PISTOL) && h.info != 0)
                     {
-                        gib = true;
-                        damage *= 1.5;
+                        if (h.info == 1)
+                        {
+                            gib = true;
+                            damage *= 1.5;
+                        }
+                        else if (h.info == 2)
+                        {
+                            damage *= 0.75;
+                        }
                     }
 
                     /*
@@ -123,8 +147,15 @@ void processevent(client *c, shotevent &e)
 
                     if ((e.gun == GUN_SUBGUN) && h.info != 0)
                     {
-                        gib = true;
-                        damage *= 1.7;
+                        if (h.info == 1)
+                        {
+                            gib = true;
+                            damage *= 1.7;
+                        }
+                        else if (h.info == 2)
+                        {
+                            damage *= 0.7;
+                        }
                     }
 
                     /*
@@ -137,8 +168,15 @@ void processevent(client *c, shotevent &e)
 
                     if ((e.gun == GUN_CARBINE) && h.info != 0)
                     {
-                        gib = true;
-                        damage *= 1.7;
+                        if (h.info == 1)
+                        {
+                            gib = true;
+                            damage *= 1.7;
+                        }
+                        else if (h.info == 2)
+                        {
+                            damage *= 0.75;
+                        }
                     }
 
                 }                

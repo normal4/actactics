@@ -3308,7 +3308,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     hit.hit.info = getint(p);
                     loopk(3) hit.hit.dir[k] = getint(p)/DNF;
                 }
-                if(!m_demo && !m_coop) checkshoot(sender, shot, hits, tcn);
+                if(!m_demo && !m_coop && !m_gema) checkshoot(sender, shot, hits, tcn);
                 break;
             }
 
