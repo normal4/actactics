@@ -1078,6 +1078,7 @@ extern void filterlang(char *d, const char *s);
 extern void trimtrailingwhitespace(char *s);
 extern string mastername;
 extern int masterport;
+extern bool usemaster;
 extern ENetSocket connectmaster();
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
 extern int msgsizelookup(int msg);

@@ -9,7 +9,6 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 SVAR(curdemofile, "n/a");
-extern bool clfail, cllock;
 extern int searchlan;
 
 /*
@@ -77,7 +76,6 @@ void connectserv_(const char *servername, int serverport = 0, const char *passwo
 {
     if(serverport <= 0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(watchingdemo) enddemoplayback();
-    if(!clfail && cllock && searchlan<2) return;
 
     if(connpeer)
     {
