@@ -361,7 +361,7 @@ void audiomanager::updateplayerfootsteps(playerent *p)
             else l->drop(); // different footstep sound, drop it
         }
 
-        if(!isplaying)
+        if(!isplaying && !clientpaused && !clienthalftime)
         {
             // play
             float rndoffset = float(rnd(500))/500.0f;

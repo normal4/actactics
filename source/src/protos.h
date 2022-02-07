@@ -767,15 +767,15 @@ extern int backupeditundo(vector<uchar> &buf, int undolimit, int redolimit);
 
 // renderhud
 #define HUDPOS_X_BOTTOMLEFT 20
-#define HUDPOS_X_BOTTOMRIGHT 2980
 #define HUDPOS_Y_BOTTOMLEFT 1570
 #define HUDPOS_ICONSPACING 150
 #define HUDPOS_HEALTH (HUDPOS_X_BOTTOMLEFT / 2) *2
 #define HUDPOS_ARMOUR (HUDPOS_HEALTH + HUDPOS_ICONSPACING)
-#define HUDPOS_GRENADE (HUDPOS_X_BOTTOMRIGHT - 10)
+#define HUDPOS_GRENADE (VIRTW - HUDPOS_ICONSPACING*2)
 #define HUDPOS_WEAPON (HUDPOS_GRENADE - HUDPOS_ICONSPACING*2)
 #define HUDPOS_NUMBERSPACING 140
 #define HUDPOS_ARBITRARY_NUMBER 850
+
 
 enum
 {
@@ -1141,7 +1141,7 @@ struct serverconfigfile
 // server commandline parsing
 struct servercommandline
 {
-    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal, matchlockmode, ht_limit;
+    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose, incoming_limit, afk_limit, ban_time, demotimelocal, matchlockmode, ht_limit, testmode;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath, *forbidden, *demofilenameformat, *demotimestampformat;
     bool logtimestamp, demo_interm, loggamestatus;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;

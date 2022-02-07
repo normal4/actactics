@@ -41,7 +41,7 @@ struct console : consolebuffer<cline>
         int h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
         int conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
 
-        color borderc(55, 55, 55);
+        //color borderc(55, 55, 55);
         if(fullconsole) blendbox(CONSPAD, CONSPAD, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/1.75, true, -1, NULL);
 
         int numl = conlines.length(), offset = min(conskip, numl);

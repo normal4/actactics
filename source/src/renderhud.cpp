@@ -1013,10 +1013,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
         if(showstats==2 && !dbgpos)
         {
-            int left = (VIRTW - 225 - 10) * 2, top = (VIRTH * 7 / 8) * 2, ttll = VIRTW * 2 - 3 * FONTH / 2;
+            //int left = (VIRTW - 225 - 10) * 2, 
+            int top = (VIRTH * 7 / 8) * 2, ttll = VIRTW * 2 - 3 * FONTH / 2;
             int lf = lod_factor();
             int hud_eledist_fpstolod = 900, hud_eledist_other = 425;
-            int boxspace = 300;
 
             defformatstring(lod_val)("\f4evt: \f0%d", lf);
             defformatstring(wqd_val)("\fwqd: \f0%d", nquads);

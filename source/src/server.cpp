@@ -59,8 +59,7 @@ string smapname, nextmapname;
 int smode = 0, nextgamemode;
 int interm = 0;
 static bool halftime = 0;
-static int htcurtime = 0; 
-static int htstarttime = 0;
+static int htcurtime = 0, pausedtime = 0;
 static int secremain = 0, minremain = 0, gamemillis = 0, pausemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
 
 mapstats smapstats;
@@ -2052,6 +2051,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     minremain = newtime > 0 ? newtime : defaultgamelimit(newmode);
     gamemillis = 0;
     htcurtime = 0;
+    pausedtime = 0;
     serverpaused = halftime = 0;
     gamelimit = minremain*60000;
     secremain = minremain*60; 
@@ -3705,7 +3705,10 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_PAUSE:
                         vi->action = new pauseaction(vi->num1 = getint(p));
                         break;
-                     
+                    case SA_TEST:
+                        vi->action = new testaction(vi->num1 = getint(p));
+                        break;
+                  
                 }
                 vi->owner = sender;
                 vi->callmillis = servmillis;
@@ -3858,8 +3861,6 @@ void checkhalftime()
     if (minremain > 0)
     {
         secremain = (gamemillis >= gamelimit || forceintermission) ? 0 : (gamelimit - gamemillis + 1000 - 1)/1000;
-        logline(ACLOG_INFO, "secremain: %d", secremain);
-        logline(ACLOG_INFO, "secremain: %d", (gamelimit / 2) / 1000);
         if (secremain == ((gamelimit/2)/1000) && halftime == 0)
         {
             halftime = 1; 
@@ -4133,9 +4134,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             sendf(-1, 1, "ri2", SV_HTCURTIME, htcurtime);
         }
     }
-
-    //logline(ACLOG_INFO, "\f2htcurtime %d, htlimit %d, halftime %d, diff %d", htcurtime, htlimit, halftime, diff); 
-    //debug half time
 
     if(m_demo && !demoplayback) maprot.restart();
 

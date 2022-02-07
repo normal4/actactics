@@ -10,6 +10,7 @@ extern bool watchingdemo;
 extern string clientpassword;
 extern bool clientpaused = 0;
 extern uchar clienthalftime = 0; 
+extern int testmode = 0; 
 
 void *downloaddemomenu = NULL;
 static vector<mline> demo_mlines;

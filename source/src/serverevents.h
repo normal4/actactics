@@ -100,11 +100,7 @@ void processevent(client *c, shotevent &e)
                         if (h.info == 1)
                         {
                             gib = true;
-                            damage *= 3;
-                        }
-                        else if (h.info == 2)
-                        {
-                            damage *= 0.75;
+                            damage = 240;
                         }
                     }
                     
@@ -113,13 +109,19 @@ void processevent(client *c, shotevent &e)
                         if (h.info == 1)
                         {
                             gib = true;
-                            damage *= 2.5;
-
+                            if (scl.testmode == 0)
+                            {
+                                damage = 105;
+                            }
+                            if (scl.testmode == 1)
+                            {
+                                damage = 82;
+                            }
                             logline(ACLOG_INFO, "%d", h.info);
                         }
                         else if (h.info == 2)
                         {
-                            damage *= 0.75;
+                            damage = 16;
                             logline(ACLOG_INFO, "%d", h.info);
                         }
                     }
@@ -129,11 +131,11 @@ void processevent(client *c, shotevent &e)
                         if (h.info == 1)
                         {
                             gib = true;
-                            damage *= 1.5;
+                            damage = 34;
                         }
                         else if (h.info == 2)
                         {
-                            damage *= 0.75;
+                            damage = 14;
                         }
                     }
 
@@ -150,11 +152,11 @@ void processevent(client *c, shotevent &e)
                         if (h.info == 1)
                         {
                             gib = true;
-                            damage *= 1.7;
+                            damage = 34;
                         }
                         else if (h.info == 2)
                         {
-                            damage *= 0.7;
+                            damage *= 8;
                         }
                     }
 
@@ -171,11 +173,11 @@ void processevent(client *c, shotevent &e)
                         if (h.info == 1)
                         {
                             gib = true;
-                            damage *= 1.7;
+                            damage = 105;
                         }
                         else if (h.info == 2)
                         {
-                            damage *= 0.75;
+                            damage = 45;
                         }
                     }
 

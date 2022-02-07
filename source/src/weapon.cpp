@@ -878,24 +878,23 @@ void raydamage(vec &from, vec &to, playerent *d)
             {
             case GUN_KNIFE: gib = true; break;
             case GUN_SNIPER:
-                if (hitzone == HIT_HEAD) { dam *= 3; gib = true; info = 1; addgib(o, 4); }; 
-                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                if (hitzone == HIT_HEAD) { dam = 240; gib = true; info = 1; addgib(o, 4); };
                 break;
             case GUN_ASSAULT:
-                if (hitzone == HIT_HEAD) { dam *= 2.5; gib = true; info = 1; addgib(o, 4); }; 
-                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                if (hitzone == HIT_HEAD) { dam = 105; gib = true; info = 1; addgib(o, 4); };
+                if (hitzone == HIT_LEG) { dam = 16; info = 2; }
                 break;
             case GUN_SUBGUN: 
-                if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; info = 1; addgib(o, 4); }; 
-                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                if (d == player1 && hitzone == HIT_HEAD) { dam = 34; gib = true; info = 1; addgib(o, 4); }; 
+                if (hitzone == HIT_LEG) { dam = 16; info = 2; }
                 break;
             case GUN_CARBINE: 
-                if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.7; gib = true; info = 1; addgib(o, 4); }; 
-                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                if (d == player1 && hitzone == HIT_HEAD) { dam = 105; gib = true; info = 1; addgib(o, 4); }; 
+                if (hitzone == HIT_LEG) { dam = 45; info = 2; }
                 break;
             case GUN_PISTOL: 
-                if (d == player1 && hitzone == HIT_HEAD) { dam *= 1.5; gib = true; info = 1; addgib(o, 4); }; 
-                if (hitzone == HIT_LEG) { dam *= 0.75; info = 2; }
+                if (d == player1 && hitzone == HIT_HEAD) { dam = 34; gib = true; info = 1; addgib(o, 4); };
+                if (hitzone == HIT_LEG) { dam = 8; info = 2; }
                 break;
             default: break;
             }
@@ -1531,7 +1530,7 @@ subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 int subgun::dynspread() { 
     
-    if (shots == 2) return 0;
+    if (shots == 1) return 0;
     //return shots > 2 ? 120 : 1;
     return shots > 2 ? 60 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 10 ) : 0 ) ); 
 } // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
@@ -1612,122 +1611,24 @@ bool carbine::selectable() { return weapon::selectable() && !m_noprimary && this
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
 int assaultrifle::dynspread() {
-    if (shots == 1 || 2) return 0;
+    if (shots == 1 || shots == 2) return 0;
     return shots > 2 ? 55 : ( info.spread + ( shots > 0 ? ( shots == 1 ? 5 : 15 ) : 0 ) ); 
     return shots > 3 ? 55 : 1;
     }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
-// combat pistol
 
-cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
-bool cpistol::selectable() { return false; /*return weapon::selectable() && !m_noprimary && this == owner->primweap;*/ }
-void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
-void cpistol::ondeselecting() { bursting = false; }
-bool cpistol::reload(bool autoreloaded)
-{
-    bool r = weapon::reload(autoreloaded);
-    if(owner==player1 && r) { bursting = false; }
-    return r;
-}
-
-bool burst = false;
-int burstshots = 0;
-
-bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
-{
-    int attackmillis = lastmillis-owner->lastaction - gunwait;
-    if(attackmillis<0) return false;
-    gunwait = reloading = 0;
-
-    if (bursting) burst = true;
-
-    if(!owner->attacking)
-    {
-        shots = 0;
-        checkautoreload();
-        return false;
-    }
-
-    attackmillis = lastmillis - min(attackmillis, curtime);
-    updatelastaction(owner, attackmillis);
-    if(!mag)
-    {
-        audiomgr.playsoundc(S_NOAMMO);
-        gunwait += 250;
-        owner->lastattackweapon = NULL;
-        shots = 0;
-        checkautoreload();
-        return false;
-    }
-
-    owner->lastattackweapon = this;
-    shots++;
-    if (burst) burstshots++;
-
-    if(!burst) owner->attacking = false;
-
-    vec from = owner->o;
-    vec to = targ;
-    from.z -= weaponbeloweye;
-
-    attackphysics(from, to);
-
-    hits.setsize(0);
-    raydamage(from, to, owner);
-    attackfx(from, to, 0);
-
-    if ( burst && burstshots > 2 )
-    {
-        gunwait = 500;
-        burstshots = 0;
-        burst = owner->attacking = false;
-    }
-    else if ( burst )
-    {
-        gunwait = 80;
-    }
-    else
-    {
-        gunwait = info.attackdelay;
-    }
-    mag--;
-
-    sendshoot(from, to, attackmillis);
-    return true;
-}
-
-void cpistol::setburst(bool enable)
-{
-    if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
-    {
-        bursting = enable;
-    }
-}
-
-void setburst(bool enable)
-{
-    if(player1->weaponsel->type != GUN_CPISTOL) return;
-    if(intermission) return;
-    cpistol *cp = (cpistol *)player1->weaponsel;
-    cp->setburst(enable);
-    if (!burst)
-    {
-        if ( enable && burstshots == 0 ) attack(true);
-    }
-    else
-    {
-        if ( burstshots == 0 ) burst = player1->attacking = enable;
-    }
-}
-
-COMMAND(setburst, "d");
 
 // pistol
 
 pistol::pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
 bool pistol::selectable() { return weapon::selectable() && !m_nopistol; }
+int pistol::dynspread() {
+    if (shots == 1) return 0;
+    //return shots > 2 ? 120 : 1;
+    return shots > 2 ? 60 : (info.spread + (shots > 0 ? (shots == 1 ? 5 : 10) : 0));
+} // CHANGED: 2010nov19 was: min(info.spread + 10 * shots, 80)
 
 
 // akimbo
@@ -1826,6 +1727,110 @@ void knife::drawstats() {}
 void knife::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
 void knife::renderstats() { }
 
+// combat pistol
+
+cpistol::cpistol(playerent* owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
+bool cpistol::selectable() { return false; /*return weapon::selectable() && !m_noprimary && this == owner->primweap;*/ }
+void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
+void cpistol::ondeselecting() { bursting = false; }
+bool cpistol::reload(bool autoreloaded)
+{
+    bool r = weapon::reload(autoreloaded);
+    if (owner == player1 && r) { bursting = false; }
+    return r;
+}
+
+bool burst = false;
+int burstshots = 0;
+
+bool cpistol::attack(vec& targ) // modded from gun::attack // FIXME
+{
+    int attackmillis = lastmillis - owner->lastaction - gunwait;
+    if (attackmillis < 0) return false;
+    gunwait = reloading = 0;
+
+    if (bursting) burst = true;
+
+    if (!owner->attacking)
+    {
+        shots = 0;
+        checkautoreload();
+        return false;
+    }
+
+    attackmillis = lastmillis - min(attackmillis, curtime);
+    updatelastaction(owner, attackmillis);
+    if (!mag)
+    {
+        audiomgr.playsoundc(S_NOAMMO);
+        gunwait += 250;
+        owner->lastattackweapon = NULL;
+        shots = 0;
+        checkautoreload();
+        return false;
+    }
+
+    owner->lastattackweapon = this;
+    shots++;
+    if (burst) burstshots++;
+
+    if (!burst) owner->attacking = false;
+
+    vec from = owner->o;
+    vec to = targ;
+    from.z -= weaponbeloweye;
+
+    attackphysics(from, to);
+
+    hits.setsize(0);
+    raydamage(from, to, owner);
+    attackfx(from, to, 0);
+
+    if (burst && burstshots > 2)
+    {
+        gunwait = 500;
+        burstshots = 0;
+        burst = owner->attacking = false;
+    }
+    else if (burst)
+    {
+        gunwait = 80;
+    }
+    else
+    {
+        gunwait = info.attackdelay;
+    }
+    mag--;
+
+    sendshoot(from, to, attackmillis);
+    return true;
+}
+
+void cpistol::setburst(bool enable)
+{
+    if (this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
+    {
+        bursting = enable;
+    }
+}
+
+void setburst(bool enable)
+{
+    if (player1->weaponsel->type != GUN_CPISTOL) return;
+    if (intermission) return;
+    cpistol* cp = (cpistol*)player1->weaponsel;
+    cp->setburst(enable);
+    if (!burst)
+    {
+        if (enable && burstshots == 0) attack(true);
+    }
+    else
+    {
+        if (burstshots == 0) burst = player1->attacking = enable;
+    }
+}
+
+COMMAND(setburst, "d");
 
 void setscope(bool enable)
 {

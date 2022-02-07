@@ -59,6 +59,7 @@ extern int maploaded, msctrl;
 extern float waterlevel;
 extern bool clientpaused;
 extern uchar clienthalftime;
+extern int testmode;
 
 #define AC_VERSION 1901
 #define AC_MASTER_URI "ms.actactics.net"

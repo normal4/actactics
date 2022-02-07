@@ -3,7 +3,7 @@
 enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
 int roleconf(int key)
-{ // current defaults: "fkbMASRCDEPTWlJ"
+{ // current defaults: "fkbMASRCDEPTWLJ"
     if(strchr(scl.voteperm, tolower(key))) return CR_DEFAULT;
     if(strchr(scl.voteperm, toupper(key))) return CR_ADMIN;
     return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
@@ -397,14 +397,19 @@ struct pauseaction : serveraction
     }
 }; 
 
-/*
-struct compaction : serveraction
+struct testaction : serveraction
 {
-    void perform () { }
-    bool isvalid() { return compmode >= 0 && compmode <= 1; }
-    compaction ()
+    int testmode;
+    void perform() { }
+    testaction (int testmode) : testmode(testmode)
     {
-
+        if (testmode == 0)
+        {
+            scl.testmode = 0;
+        }
+        if (testmode == 1)
+        {
+            scl.testmode = 1;
+        }
     }
 };
-*/

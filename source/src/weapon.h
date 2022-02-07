@@ -158,6 +158,7 @@ struct cpistol : gun
 struct pistol : gun
 {
     pistol(playerent *owner);
+    int dynspread();
     bool selectable();
 };
 

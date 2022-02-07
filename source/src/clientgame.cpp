@@ -1376,7 +1376,7 @@ COMMAND(dropflag, "");
 
 char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "switch teams", "%s server", "%s server"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to team %s", "give admin to player %s", "load map %s in mode %s%s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams", "switch teams", "%s server", "%s server", "test mode %s"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1414,6 +1414,9 @@ char *votestring(int type, const char *arg1, const char *arg2, const char *arg3)
             break;
         case SA_PAUSE:
             formatstring(out)(msg, atoi(arg1) == 0 ? "unpause" : "pause"); 
+            break;
+        case SA_TEST:
+            formatstring(out)(msg, atoi(arg1) == 0 ? "0" : "1");
             break;
         case SA_RECORDDEMO:
             formatstring(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
@@ -1838,8 +1841,8 @@ void togglespect() // cycle through all spectating modes
     else
     {
         int mode;
-        if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-        mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((!smpermitted() ? SM_FLY : SM_NUM) - SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
+        if (player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST;
+        else  mode = SM_FOLLOW1ST + ((player1->spectatemode - SM_FOLLOW1ST + 1) % ((!smpermitted() ? SM_FLY : SM_NUM) - SM_FOLLOW1ST)); // replace SM_OVERVIEW by SM_NUM to enable overview mode
         spectatemode(mode);
     }
 }
