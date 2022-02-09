@@ -894,7 +894,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 break;
             case GUN_PISTOL: 
                 if (d == player1 && hitzone == HIT_HEAD) { dam = 34; gib = true; info = 1; addgib(o, 4); };
-                if (hitzone == HIT_LEG) { dam = 8; info = 2; }
+                if (hitzone == HIT_LEG) { dam = 9; info = 2; }
                 break;
             default: break;
             }

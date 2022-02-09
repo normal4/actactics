@@ -156,7 +156,7 @@ void processevent(client *c, shotevent &e)
                         }
                         else if (h.info == 2)
                         {
-                            damage *= 8;
+                            damage = 9;
                         }
                     }
 
